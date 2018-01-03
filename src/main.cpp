@@ -10,7 +10,8 @@
 #include <string>
 #include <algorithm>
 #include <opencv2/opencv.hpp> //OpenCV library
-
+#include "Tarp.h"
+#include <thread>
 
 using namespace std;
 using namespace cv;
@@ -19,7 +20,7 @@ using namespace cv;
 Mat getImage();
 void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high);
 void printTime(String operation, TickMeter& tm);
-
+vector<vector<Point> > findContours(cuda::GpuMat gpuImgHSV, int* low_thresh, int* high_thresh);
 
 int main(int argc, char** argv )
 {
@@ -34,6 +35,11 @@ int main(int argc, char** argv )
 	int yellow_low[3] = {150,0,0};
 	int yellow_high[3] = {180,255,255};
 
+	//Create Tarp Objects
+	Tarp blue("Blue", blue_low, blue_high, blue_high);
+	Tarp pink("Pink", pink_low, pink_high, pink_high);
+	Tarp yellow("Yellow", yellow_low, yellow_high, yellow_high);
+
 	/*-----Initial setup and image capture-----*/
 
 	//Start timer
@@ -44,7 +50,7 @@ int main(int argc, char** argv )
 
 	//Import images. imread imports in BGR format.
 
-	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/chaos.jpg", CV_LOAD_IMAGE_COLOR);
+	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/tarps.jpg", CV_LOAD_IMAGE_COLOR);
 
 	//printTime("Read Image",stepTime);
 
@@ -89,14 +95,11 @@ int main(int argc, char** argv )
 
 	//Declare GPU matrices to hold converted color space
 	cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
-	cuda::GpuMat gpuImgGRAY(rrows,rcols,imgType);
 
-
-	//Convert color space to HSV and Grayscale using GPU
+	//Convert color space to HSV using GPU
 	cuda::cvtColor(gpuCameraImgBGRSmall, gpuImgHSV, CV_BGR2HSV,0);
-	cuda::cvtColor(gpuCameraImgBGRSmall, gpuImgGRAY, CV_BGR2GRAY, 0);
 	Mat imgHSV(gpuImgHSV);
-	Mat imgGRAY(gpuImgGRAY);
+
 
 	//Split HSV image into 3 channels
 	cuda::GpuMat gpuSplitImgHSV[3];
@@ -115,27 +118,22 @@ int main(int argc, char** argv )
 	
 	/*----- Contour detection -----*/
 
-	//Apply thresholding.
-	//This isolates the desired color and makes it easier for the following
-	//edge detection algorithm to identify the tarps
-	cuda::GpuMat thresh;
+	printTime("Start", stepTime);
+	blue.findTarpContours(gpuImgHSV);
+	pink.findTarpContours(gpuImgHSV);
+	yellow.findTarpContours(gpuImgHSV);
+	printTime("Contours", stepTime);
 
-	gpuInRange(gpuImgHSV,thresh,pink_low,pink_high);
-	Mat t(thresh); //Save to CPU
+	/*----- Areas -----*/
+	blue.findTarpArea();
+	pink.findTarpArea();
+	yellow.findTarpArea();
+	printTime("Areas", stepTime);
 
-	vector<vector<Point> > contours, contours_approx;
-	vector<Vec4i> hierarchy;
 
 
-	findContours( t, contours, hierarchy, RETR_TREE, CHAIN_APPROX_NONE, Point(0, 0) );
-	contours_approx.resize(contours.size());
-	//Appromiximate/smooth contours. Typically 1% - 5% error is typical.
-	//Additionally, this creates closed loops of all contours. (Needed to find center/average color)
-    for( size_t k = 0; k < contours.size(); k++ )
-    {
-        approxPolyDP(Mat(contours[k]), contours_approx[k], 0.01*arcLength(contours[k],true), true);
-    }
-    
+	vector<vector<Point> > contours_approx = findContours(gpuImgHSV, pink_low, pink_high);
+
     
 
 	//Determine which contour matches the tarp. Initially, assume all contours are valid.
@@ -160,9 +158,8 @@ int main(int argc, char** argv )
     	{
 			Mat mask(rrows,rcols,CV_8UC1, Scalar(0)); //Initialize
 
-			drawContours(mask, contours_approx, i, Scalar(255), -1, 8, hierarchy, 0, Point() ); //Draw filled in mask
+			drawContours(mask, contours_approx, i, Scalar(255), -1, 8); //Draw filled in mask
 			Scalar contourMean = mean(splitImgHSV[0],mask); //Gets average value of the points inside the mask
-			cout << contourMean << endl;
     	}
     }
 
@@ -173,24 +170,19 @@ int main(int argc, char** argv )
     {
     	if(validContour[i]){
     		area[i] = contourArea(contours_approx[i]);
-    		cout << area[i] << endl;
     	}
     }
 
 
     sort(area.begin(), area.end(), greater<int>());
 
-    for (unsigned int i = 0; i < area.size(); i++)
-    {
-    	cout << area[i] << endl;
-    }
 
 	//Draw contours on image. Eventually, only 1 contour per tarp will need to be drawn
 	for(unsigned int i = 0; i< contours_approx.size(); i++ )
 	{
 		Scalar color = Scalar(255,255,255);
 		if(validContour[i]){
-			drawContours( cameraImgBGRSmall, contours_approx, 0, color, -1, 8, hierarchy, 0, Point() );
+			drawContours( cameraImgBGRSmall, contours_approx, 0, color, -1, 8);
 		}
 	}
 
@@ -213,6 +205,33 @@ int main(int argc, char** argv )
 
 }
 
+vector<vector<Point> > findContours(cuda::GpuMat gpuImgHSV, int* low_thresh, int* high_thresh)
+{
+	//Apply thresholding.
+	//This isolates the desired color and makes it easier for the following
+	//edge detection algorithm to identify the tarps
+	cuda::GpuMat gpuThresh;
+
+	gpuInRange(gpuImgHSV,gpuThresh,low_thresh,high_thresh);
+
+	Mat cpuThresh(gpuThresh); //Save to CPU
+
+	vector<vector<Point> > contours, contours_approx;
+	vector<Vec4i> hierarchy;
+
+	findContours( cpuThresh, contours, hierarchy, RETR_TREE, CHAIN_APPROX_NONE, Point(0, 0) );
+	contours_approx.resize(contours.size());
+	//Appromiximate/smooth contours. Typically 1% - 5% error is typical.
+	//Additionally, this creates closed loops of all contours. (Needed to find center/average color)
+    for( size_t k = 0; k < contours.size(); k++ )
+    {
+        approxPolyDP(Mat(contours[k]), contours_approx[k], 0.01*arcLength(contours[k],true), true);
+    }
+
+    return contours_approx;
+
+}
+
 
 //Function to import an image. Currently only reads files from filesystem.
 //In the future, expand to include code for accessing the camera
@@ -221,36 +240,7 @@ Mat getImage()
 	return imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/tarps.jpg", CV_LOAD_IMAGE_COLOR);
 }
 
-//Applies in-range thresholding to an image using the GPU
-void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high)
-{
 
-	//Perform range thresholding using GPU
-	cuda::GpuMat gpuSplitImg[3];
-	cuda::split(src,gpuSplitImg);
-
-	//Create matrices for upper & lower values
-	cuda::GpuMat gpuTarps_Thresh_Above[3];
-	cuda::GpuMat gpuTarps_Thresh_Below[3];
-
-	//Apply lower thresholding
-	cuda::threshold(gpuSplitImg[0],gpuTarps_Thresh_Above[0],low[0],255,THRESH_BINARY);
-	cuda::threshold(gpuSplitImg[1],gpuTarps_Thresh_Above[1],low[1],255,THRESH_BINARY);
-	cuda::threshold(gpuSplitImg[2],gpuTarps_Thresh_Above[2],low[2],255,THRESH_BINARY);
-
-	//Apply upper bound thresholding using inverse threshold operation
-	cuda::threshold(gpuSplitImg[0],gpuTarps_Thresh_Below[0],high[0],255,THRESH_BINARY_INV);
-	cuda::threshold(gpuSplitImg[1],gpuTarps_Thresh_Below[1],high[1],255,THRESH_BINARY_INV);
-	cuda::threshold(gpuSplitImg[2],gpuTarps_Thresh_Below[2],high[2],255,THRESH_BINARY_INV);
-
-	//Combine channel thresholds
-	cuda::bitwise_and(gpuTarps_Thresh_Above[0], gpuTarps_Thresh_Above[1], dest);
-	cuda::bitwise_and(dest, gpuTarps_Thresh_Above[2], dest);
-	cuda::bitwise_and(dest, gpuTarps_Thresh_Below[0], dest);
-	cuda::bitwise_and(dest, gpuTarps_Thresh_Below[1], dest);
-	cuda::bitwise_and(dest, gpuTarps_Thresh_Below[2], dest);
-
-}
 
 //Output elapsed time since last printTime() operation. Useful for determining runtime of given step.
 void printTime(String operation, TickMeter& tm)
