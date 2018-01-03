@@ -16,32 +16,6 @@
 using namespace std;
 using namespace cv;
 
-//Color constants
-//RGB Values. 3 tarps to identify: pink, blue, yellow
-//const int pink_r = 226;
-//const int pink_g = 86;
-//const int pink_b = 95;
-//
-//const int blue_r = 14;
-//const int blue_g = 64;
-//const int blue_b = 114;
-//
-//const int yellow_r = 255;
-//const int yellow_g = 210;
-//const int yellow_b = 30;
-//
-////HSV Values. May need to confirm with Eden/Alysia. Online converter != values from camera image
-//const float pink_h = 356/2; //Scale is 0-180. Must normalize from 0-360 scale from online converter
-//const float pink_s = 61.9/100*225; //Scale is 0-225. Must convert from percent to double
-//const float pink_v = 88.6/100*225;
-//
-//const float blue_h = 223/2;
-//const float blue_s = 87.7/100*225;
-//const float blue_v = 44/100*225;
-//
-//const float yellow_h = 48/2;
-//const float yellow_s = 88.2/100*225;
-//const float yellow_v = 100/100*225;
 
 Mat getImage();
 void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high);
