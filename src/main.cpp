@@ -9,14 +9,13 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <array>
 #include <opencv2/opencv.hpp> //OpenCV library
 
 
 using namespace std;
 using namespace cv;
 
-
+//Forware-declare functions
 Mat getImage();
 void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high);
 void printTime(String operation, TickMeter& tm);
@@ -42,9 +41,6 @@ int main(int argc, char** argv )
 	TickMeter totalTime;
 	stepTime.start();
 	totalTime.start();
-
-	cout << "Initial Setup:" << endl;
-
 
 	//Import images. imread imports in BGR format.
 
@@ -83,29 +79,13 @@ int main(int argc, char** argv )
 	cuda::setDevice(0);
 	cuda::resetDevice();
 
-	//printTime("Initialize GPU",stepTime);
-
-
 	Mat cameraImgBGRSmall(rrows,rcols,imgType);
-	//printTime("Allocate CPU Small",stepTime);
 
 	resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
-	//printTime("Resize CPU",stepTime);
+
 	cuda::GpuMat gpuCameraImgBGRSmall(rrows,rcols,imgType);
-	//printTime("Allocate GPU Small",stepTime);
 
 	gpuCameraImgBGRSmall.upload(cameraImgBGRSmall);
-	//printTime("Upload GPU",stepTime);
-
-
-	//Create Gpu Matrices. cuda:: functions must operate using GPU matrices.
-	//CPU Mats can be passed to GPU mats using the GpuMat constructor or the upload function
-
-
-	//Resize with CPU, then upload. Faster than uploading, then resizing
-
-
-	printTime("Start",stepTime);
 
 	//Declare GPU matrices to hold converted color space
 	cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
@@ -131,7 +111,9 @@ int main(int argc, char** argv )
 	boxFilter(imgHSV,imgHSV,-1,Size(5,5));
 	gpuImgHSV.upload(imgHSV);
 
-	//PER-TARP OPERATIONS
+	/*----- PER-TARP OPERATIONS -----*/
+	
+	/*----- Contour detection -----*/
 
 	//Apply thresholding.
 	//This isolates the desired color and makes it easier for the following
@@ -141,11 +123,6 @@ int main(int argc, char** argv )
 	gpuInRange(gpuImgHSV,thresh,pink_low,pink_high);
 	Mat t(thresh); //Save to CPU
 
-
-
-
-
-	//Contour detection.
 	vector<vector<Point> > contours, contours_approx;
 	vector<Vec4i> hierarchy;
 
@@ -158,20 +135,14 @@ int main(int argc, char** argv )
     {
         approxPolyDP(Mat(contours[k]), contours_approx[k], 0.01*arcLength(contours[k],true), true);
     }
+    
+    
 
-
-
-
-
-	//Determine which contour matches the tarp
-    //First, remove contours with > 10 vertices
+	//Determine which contour matches the tarp. Initially, assume all contours are valid.
+    
     vector<bool> validContour(contours_approx.size(), true);
 
-//    for(int i = 0; i < contours_approx.size(); i++)
-//    {
-//    	validContour[i] = true; //Assume all are valid initially
-//    }
-
+	//First, remove contours with > 10 vertices
     for(unsigned int i = 0; i < contours_approx.size(); i++)
     {
     	//Filter by number of vertices
@@ -180,8 +151,6 @@ int main(int argc, char** argv )
     		validContour[i] = false;
     	}
     }
-
-
 
 
     //Get average color & std deviation of each contour location
@@ -245,13 +214,6 @@ int main(int argc, char** argv )
 }
 
 
-void HSVpercent_to_HSVu8(int* HSVpercent, int* HSVu8)
-{
-	HSVu8[0] = HSVpercent[0]/2; //H, 0-180 degrees
-	HSVu8[1] = (HSVpercent[1]/100) * 255; //S, 0-255
-	HSVu8[2] = (HSVpercent[2]/100) * 255; //V, 0-255
-}
-
 //Function to import an image. Currently only reads files from filesystem.
 //In the future, expand to include code for accessing the camera
 Mat getImage()
@@ -267,8 +229,9 @@ void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high)
 	cuda::GpuMat gpuSplitImg[3];
 	cuda::split(src,gpuSplitImg);
 
-	cuda::GpuMat gpuTarps_Thresh_Above[3]; //Create matrix for lower values
-	cuda::GpuMat gpuTarps_Thresh_Below[3]; //Create matrix for upper values
+	//Create matrices for upper & lower values
+	cuda::GpuMat gpuTarps_Thresh_Above[3];
+	cuda::GpuMat gpuTarps_Thresh_Below[3];
 
 	//Apply lower thresholding
 	cuda::threshold(gpuSplitImg[0],gpuTarps_Thresh_Above[0],low[0],255,THRESH_BINARY);
@@ -289,6 +252,7 @@ void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high)
 
 }
 
+//Output elapsed time since last printTime() operation. Useful for determining runtime of given step.
 void printTime(String operation, TickMeter& tm)
 {
 	tm.stop();
