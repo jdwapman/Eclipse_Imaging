@@ -32,7 +32,7 @@ Tarp::~Tarp()
 }
 
 //Identify possible tarp contours for a given HSV image
-void Tarp::findTarpContours(cuda::GpuMat gpuImgHSV)
+vector<vector<Point> > Tarp::findTarpContours(cuda::GpuMat gpuImgHSV)
 {
 
 	//Apply thresholding.
@@ -58,42 +58,90 @@ void Tarp::findTarpContours(cuda::GpuMat gpuImgHSV)
 		approxPolyDP(Mat(contours[k]), contours_approx[k], 0.01*arcLength(contours[k],true), true);
 	}
 
-	this->tarpContours = contours_approx; //Save possible contours
+	return contours_approx; //Save possible contours
 
-	this->validContour.resize(contours_approx.size(), true); //Initialize validity vector
-
-	return;
 }
 
-//Get average color & std deviation of each contour location
-void Tarp::findTarpMeanSTD(Mat* splitImgHSV)
+//Get average color of each contour location
+vector<Scalar> Tarp::findTarpMeans(vector<vector<Point> > tarpContours, Mat* splitImgHSV)
 {
-	for(unsigned int i = 0; i < this->tarpContours.size(); i++)
-	    {
-	    	if(this->validContour[i])
-	    	{
-				Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
+	vector<Scalar> tarpMeans(tarpContours.size(),0);
 
-				drawContours(mask, this->tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
-				this->tarpMean[i] = mean(splitImgHSV[0],mask); //Gets average value of the points inside the mask
-	    	}
-	    }
+	for(unsigned int i = 0; i < tarpContours.size(); i++)
+	{
 
-	return;
+		Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
+
+		drawContours(mask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
+		tarpMeans[i] = mean(splitImgHSV[0],mask); //Gets average value of the points inside the mask
+
+	}
+
+	return tarpMeans;
+}
+
+//Get std deviation of each contour location
+vector<Scalar> Tarp::findTarpSTDevs(vector<vector<Point> > tarpContours, Mat* splitImgHSV)
+{
+	vector<Scalar> tarpSTDevs(tarpContours.size(),0);
+
+	for(unsigned int i = 0; i < tarpContours.size(); i++)
+	{
+
+		Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
+
+		drawContours(mask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
+		tarpSTDevs[i] = mean(splitImgHSV[0],mask); //Gets STD of the points inside the mask
+
+	}
+
+	return tarpSTDevs;
 }
 
 //Find the area of each tarp contour
-void Tarp::findTarpArea()
+vector<double> Tarp::findTarpAreas(vector<vector<Point> > tarpContours)
+{
+	vector<double> tarpAreas(tarpContours.size(),0);
+
+	for(unsigned int i = 0; i < tarpAreas.size(); i++)
+	{
+		tarpAreas[i] = contourArea(tarpContours[i]);
+	}
+
+	return tarpAreas;
+}
+
+vector<unsigned int> Tarp::findTarpVertices(vector<vector<Point> > tarpContours)
 {
 
-	this->tarpArea.resize(this->tarpContours.size(), 0);
+	vector<unsigned int> tarpVertices(tarpContours.size(), 0);
 
-	for(unsigned int i = 0; i < tarpArea.size(); i++)
-	    {
-	    	if(this->validContour[i]){
-	    		this->tarpArea[i] = contourArea(this->tarpContours[i]);
-	    	}
-	    }
+	for(unsigned int i = 0; i < tarpContours.size(); i++)
+	{
+		tarpVertices[i] = tarpContours[i].size();
+	}
+
+	return tarpVertices;
+}
+
+void Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
+{
+
+	//Get tarp contours
+	vector<vector<Point> > tarpContours = findTarpContours(gpuImgHSV);
+
+	//Get number of tarp vertices
+	vector<unsigned int> tarpVertices = findTarpVertices(tarpContours);
+
+	//Get tarp areas
+	vector<double> tarpAreas = findTarpAreas(tarpContours);
+
+	//Get tarp means
+	vector<Scalar> tarpMeans = findTarpMeans(tarpContours, splitImgHSV);
+
+	//Get tarp standard deviations
+	vector<Scalar> tarpSTDevs = findTarpSTDevs(tarpContours, splitImgHSV);
 
 	return;
 }
+

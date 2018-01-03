@@ -104,7 +104,7 @@ int main(int argc, char** argv )
 	gpuSplitImgHSV[0].download(splitImgHSV[0]);
 	gpuSplitImgHSV[1].download(splitImgHSV[1]);
 	gpuSplitImgHSV[2].download(splitImgHSV[2]);
-	printTime("Split Image", stepTime);
+
 	//Blur image (Must use CPU for a 3-channel image)
 	boxFilter(imgHSV,imgHSV,-1,Size(5,5));
 	gpuImgHSV.upload(imgHSV);
@@ -112,18 +112,21 @@ int main(int argc, char** argv )
 	/*----- PER-TARP OPERATIONS -----*/
 	
 	/*----- Contour detection -----*/
+	printTime("Split Image", stepTime);
 
+	blue.findBestTarp(gpuImgHSV, splitImgHSV);
+	printTime("Decision", stepTime);
 
-	blue.findTarpContours(gpuImgHSV);
-	pink.findTarpContours(gpuImgHSV);
-	yellow.findTarpContours(gpuImgHSV);
-	printTime("Contours", stepTime);
-
-	/*----- Areas -----*/
-	blue.findTarpArea();
-	pink.findTarpArea();
-	yellow.findTarpArea();
-	printTime("Areas", stepTime);
+//	blue.findTarpContours(gpuImgHSV);
+//	pink.findTarpContours(gpuImgHSV);
+//	yellow.findTarpContours(gpuImgHSV);
+//	printTime("Contours", stepTime);
+//
+//	/*----- Areas -----*/
+//	blue.findTarpArea();
+//	pink.findTarpArea();
+//	yellow.findTarpArea();
+//	printTime("Areas", stepTime);
 
 
 	/*

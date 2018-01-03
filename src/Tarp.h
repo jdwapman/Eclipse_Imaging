@@ -28,20 +28,21 @@ class Tarp {
 
 	//Target identification
 	double last_position = 0;
-	vector<double> tarpArea;
-	vector<Scalar> tarpMean;
-	vector<vector<Point> > tarpContours;
-	vector<bool> validContour;
 
+
+	//Private functions
+	vector<Scalar> findTarpMeans(vector<vector<Point> > tarpContours, Mat* splitImgHSV);
+	vector<Scalar> findTarpSTDevs(vector<vector<Point> > tarpContours, Mat* splitImgHSV);
+	vector<vector<Point> > findTarpContours(cuda::GpuMat gpuImgHSV);
+	vector<double> findTarpAreas(vector<vector<Point> > tarpContours);
+	vector<unsigned int> findTarpVertices(vector<vector<Point> > tarpContours);
 
 public:
 	Tarp(string color, int* ideal, int* low, int* high);
 	virtual ~Tarp();
 
-	//Custom functions
-	void findTarpMeanSTD(Mat* splitImgHSV);
-	void findTarpContours(cuda::GpuMat gpuImgHSV);
-	void findTarpArea();
+	//Find most likely tarp
+	void findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV);
 };
 
 
