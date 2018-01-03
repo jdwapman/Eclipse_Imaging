@@ -110,75 +110,12 @@ int main(int argc, char** argv )
 	gpuImgHSV.upload(imgHSV);
 
 	/*----- PER-TARP OPERATIONS -----*/
-	
-	/*----- Contour detection -----*/
-	printTime("Split Image", stepTime);
-
 	vector<vector<Point> > finalContours(3);
 	finalContours[0] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
 	printTime("Decision", stepTime);
 
-//	blue.findTarpContours(gpuImgHSV);
-//	pink.findTarpContours(gpuImgHSV);
-//	yellow.findTarpContours(gpuImgHSV);
-//	printTime("Contours", stepTime);
-//
-//	/*----- Areas -----*/
-//	blue.findTarpArea();
-//	pink.findTarpArea();
-//	yellow.findTarpArea();
-//	printTime("Areas", stepTime);
 
-
-	/*
-
-	vector<vector<Point> > contours_approx = findContours(gpuImgHSV, pink_low, pink_high);
-
-    
-
-	//Determine which contour matches the tarp. Initially, assume all contours are valid.
-    
-    vector<bool> validContour(contours_approx.size(), true);
-
-	//First, remove contours with > 10 vertices
-    for(unsigned int i = 0; i < contours_approx.size(); i++)
-    {
-    	//Filter by number of vertices
-    	if(validContour[i] && (contours_approx[i].size() > 10))
-    	{
-    		validContour[i] = false;
-    	}
-    }
-
-
-    //Get average color & std deviation of each contour location
-    for(unsigned int i = 0; i < contours_approx.size(); i++)
-    {
-    	if(validContour[i])
-    	{
-			Mat mask(rrows,rcols,CV_8UC1, Scalar(0)); //Initialize
-
-			drawContours(mask, contours_approx, i, Scalar(255), -1, 8); //Draw filled in mask
-			Scalar contourMean = mean(splitImgHSV[0],mask); //Gets average value of the points inside the mask
-    	}
-    }
-
-    vector<double> area(contours_approx.size(), 0);
-
-    //Get area of each contour
-    for(unsigned int i = 0; i < area.size(); i++)
-    {
-    	if(validContour[i]){
-    		area[i] = contourArea(contours_approx[i]);
-    	}
-    }
-
-
-    sort(area.begin(), area.end(), greater<int>());
-	*/
-
-
-	//Draw contours on image. Eventually, only 1 contour per tarp will need to be drawn
+	//Draw contours on image.
 	for(unsigned int i = 0; i< finalContours.size(); i++ )
 	{
 		Scalar color = Scalar(255,255,255);
@@ -209,7 +146,7 @@ int main(int argc, char** argv )
 
 }
 
-
+/*---------- CUSTOM FUNCTIONS ----------*/
 
 //Function to import an image. Currently only reads files from filesystem.
 //In the future, expand to include code for accessing the camera
@@ -217,7 +154,6 @@ Mat getImage()
 {
 	return imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/tarps.jpg", CV_LOAD_IMAGE_COLOR);
 }
-
 
 
 //Output elapsed time since last printTime() operation. Useful for determining runtime of given step.
