@@ -11,34 +11,34 @@
 #include <algorithm>
 #include <opencv2/opencv.hpp> //OpenCV library
 #include "Tarp.h"
-#include <thread>
 
 using namespace std;
 using namespace cv;
 
 //Forware-declare functions
 Mat getImage();
-void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high);
 void printTime(String operation, TickMeter& tm);
-vector<vector<Point> > findContours(cuda::GpuMat gpuImgHSV, int* low_thresh, int* high_thresh);
 
 int main(int argc, char** argv )
 {
 
 	// Ranges of colors to look for in HSV color space
+	int blue_ideal[3] = {0,0,0};
 	int blue_low[3] = {100,150,0};
 	int blue_high[3] = {130,255,255};
 
+	int pink_ideal[3] = {0,0,0};
 	int pink_low[3] = {150,70,178};
 	int pink_high[3] = {180,155,255};
 
+	int yellow_ideal[3] = {0,0,0};
 	int yellow_low[3] = {150,0,0};
 	int yellow_high[3] = {180,255,255};
 
 	//Create Tarp Objects
-	Tarp blue("Blue", blue_low, blue_high, blue_high);
-	Tarp pink("Pink", pink_low, pink_high, pink_high);
-	Tarp yellow("Yellow", yellow_low, yellow_high, yellow_high);
+	Tarp blue("Blue", blue_ideal, blue_low, blue_high);
+	Tarp pink("Pink", pink_ideal, pink_low, pink_high);
+	Tarp yellow("Yellow", yellow_ideal, yellow_low, yellow_high);
 
 	/*-----Initial setup and image capture-----*/
 
@@ -52,10 +52,7 @@ int main(int argc, char** argv )
 
 	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/tarps.jpg", CV_LOAD_IMAGE_COLOR);
 
-	//printTime("Read Image",stepTime);
-
-
-	//Get image dimensions
+	//Get image dimensions for preallocation. Can eventually replace with constants
 	int rows = cameraImgBGR.rows;
 	int cols = cameraImgBGR.cols;
 	int imgType = cameraImgBGR.type();
@@ -64,8 +61,6 @@ int main(int argc, char** argv )
 	double scale = (1.0/8.0);
 	int rrows = rows * scale;
 	int rcols = cols * scale;
-
-	//printTime("Get Dimensions",stepTime);
 
 	//Check image exists
 	if(cameraImgBGR.empty() == true)
@@ -100,7 +95,7 @@ int main(int argc, char** argv )
 	cuda::cvtColor(gpuCameraImgBGRSmall, gpuImgHSV, CV_BGR2HSV,0);
 	Mat imgHSV(gpuImgHSV);
 
-
+	printTime("Start", stepTime);
 	//Split HSV image into 3 channels
 	cuda::GpuMat gpuSplitImgHSV[3];
 	cuda::split(gpuImgHSV,gpuSplitImgHSV);
@@ -109,7 +104,7 @@ int main(int argc, char** argv )
 	gpuSplitImgHSV[0].download(splitImgHSV[0]);
 	gpuSplitImgHSV[1].download(splitImgHSV[1]);
 	gpuSplitImgHSV[2].download(splitImgHSV[2]);
-
+	printTime("Split Image", stepTime);
 	//Blur image (Must use CPU for a 3-channel image)
 	boxFilter(imgHSV,imgHSV,-1,Size(5,5));
 	gpuImgHSV.upload(imgHSV);
@@ -118,7 +113,7 @@ int main(int argc, char** argv )
 	
 	/*----- Contour detection -----*/
 
-	printTime("Start", stepTime);
+
 	blue.findTarpContours(gpuImgHSV);
 	pink.findTarpContours(gpuImgHSV);
 	yellow.findTarpContours(gpuImgHSV);
@@ -131,6 +126,7 @@ int main(int argc, char** argv )
 	printTime("Areas", stepTime);
 
 
+	/*
 
 	vector<vector<Point> > contours_approx = findContours(gpuImgHSV, pink_low, pink_high);
 
@@ -177,6 +173,7 @@ int main(int argc, char** argv )
     sort(area.begin(), area.end(), greater<int>());
 
 
+
 	//Draw contours on image. Eventually, only 1 contour per tarp will need to be drawn
 	for(unsigned int i = 0; i< contours_approx.size(); i++ )
 	{
@@ -197,7 +194,7 @@ int main(int argc, char** argv )
 
     //Save image
     imwrite("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/Output_Image.jpg",cameraImgBGRSmall);
-
+	*/
     //Free GPU Resources
 	cuda::resetDevice();
 
@@ -205,32 +202,6 @@ int main(int argc, char** argv )
 
 }
 
-vector<vector<Point> > findContours(cuda::GpuMat gpuImgHSV, int* low_thresh, int* high_thresh)
-{
-	//Apply thresholding.
-	//This isolates the desired color and makes it easier for the following
-	//edge detection algorithm to identify the tarps
-	cuda::GpuMat gpuThresh;
-
-	gpuInRange(gpuImgHSV,gpuThresh,low_thresh,high_thresh);
-
-	Mat cpuThresh(gpuThresh); //Save to CPU
-
-	vector<vector<Point> > contours, contours_approx;
-	vector<Vec4i> hierarchy;
-
-	findContours( cpuThresh, contours, hierarchy, RETR_TREE, CHAIN_APPROX_NONE, Point(0, 0) );
-	contours_approx.resize(contours.size());
-	//Appromiximate/smooth contours. Typically 1% - 5% error is typical.
-	//Additionally, this creates closed loops of all contours. (Needed to find center/average color)
-    for( size_t k = 0; k < contours.size(); k++ )
-    {
-        approxPolyDP(Mat(contours[k]), contours_approx[k], 0.01*arcLength(contours[k],true), true);
-    }
-
-    return contours_approx;
-
-}
 
 
 //Function to import an image. Currently only reads files from filesystem.

@@ -38,6 +38,7 @@ void Tarp::findTarpContours(cuda::GpuMat gpuImgHSV)
 	//Apply thresholding.
 	//This isolates the desired color and makes it easier for the following
 	//edge detection algorithm to identify the tarps
+
 	cuda::GpuMat gpuThresh;
 
 	gpuInRange(gpuImgHSV,gpuThresh,this->hsv_low,this->hsv_high);
