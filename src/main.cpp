@@ -28,8 +28,8 @@ int main(int argc, char** argv )
 	int blue_high[3] = {130,255,255};
 
 	int pink_ideal[3] = {0,0,0};
-	int pink_low[3] = {150,70,178};
-	int pink_high[3] = {180,155,255};
+	int pink_low[3] = {310,45,70};
+	int pink_high[3] = {330,55,90};
 
 	int yellow_ideal[3] = {0,0,0};
 	int yellow_low[3] = {150,0,0};
@@ -50,7 +50,7 @@ int main(int argc, char** argv )
 
 	//Import images. imread imports in BGR format.
 
-	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/tarps.jpg", CV_LOAD_IMAGE_COLOR);
+	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/chaos2.jpg", CV_LOAD_IMAGE_COLOR);
 
 	//Get image dimensions for preallocation. Can eventually replace with constants
 	int rows = cameraImgBGR.rows;
@@ -114,7 +114,8 @@ int main(int argc, char** argv )
 	/*----- Contour detection -----*/
 	printTime("Split Image", stepTime);
 
-	blue.findBestTarp(gpuImgHSV, splitImgHSV);
+	vector<vector<Point> > finalContours(3);
+	finalContours[0] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
 	printTime("Decision", stepTime);
 
 //	blue.findTarpContours(gpuImgHSV);
@@ -174,18 +175,21 @@ int main(int argc, char** argv )
 
 
     sort(area.begin(), area.end(), greater<int>());
-
+	*/
 
 
 	//Draw contours on image. Eventually, only 1 contour per tarp will need to be drawn
-	for(unsigned int i = 0; i< contours_approx.size(); i++ )
+	for(unsigned int i = 0; i< finalContours.size(); i++ )
 	{
 		Scalar color = Scalar(255,255,255);
-		if(validContour[i]){
-			drawContours( cameraImgBGRSmall, contours_approx, 0, color, -1, 8);
+		if(finalContours[i].size() > 0){
+			drawContours( cameraImgBGRSmall, finalContours, i, color, -1, 8);
+		}
+		else
+		{
+			cout << "No valid tarp" << endl;
 		}
 	}
-
 
 
 	//Display window containing thresholded tarp
@@ -197,7 +201,7 @@ int main(int argc, char** argv )
 
     //Save image
     imwrite("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/Output_Image.jpg",cameraImgBGRSmall);
-	*/
+
     //Free GPU Resources
 	cuda::resetDevice();
 

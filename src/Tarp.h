@@ -42,7 +42,7 @@ public:
 	virtual ~Tarp();
 
 	//Find most likely tarp
-	void findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV);
+	vector<Point> findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV);
 };
 
 

@@ -18,12 +18,23 @@ using namespace cv;
 Tarp::Tarp(string color, int* ideal, int* low, int* high)
 {
 	// HSV Values of tarps [H, S, V]
-	// H: 0-360 degrees
-	// S: 0-100%
-	// V: 0-100%
+	// H: 0-360 degrees -> 0-180 degrees
+	// S: 0-100% -> 0-255
+	// V: 0-100% -> 0-255
 
 	this->color = color;
 
+	this->hsv_ideal[0] = (int)(low[0] / 2.0);
+	this->hsv_ideal[1] = (int)((low[1] / 100.0) * 255.0);
+	this->hsv_ideal[2] = (int)((low[2] / 100.0) * 255.0);
+
+	this->hsv_low[0] = (int)(low[0] / 2.0);
+	this->hsv_low[1] = (int)((low[1] / 100.0) * 255.0);
+	this->hsv_low[2] = (int)((low[2] / 100.0) * 255.0);
+
+	this->hsv_high[0] = (int)(high[0] / 2.0);
+	this->hsv_high[1] = (int)((high[1] / 100.0) * 255.0);
+	this->hsv_high[2] = (int)((high[2] / 100.0) * 255.0);
 }
 
 Tarp::~Tarp()
@@ -40,6 +51,7 @@ vector<vector<Point> > Tarp::findTarpContours(cuda::GpuMat gpuImgHSV)
 	//edge detection algorithm to identify the tarps
 
 	cuda::GpuMat gpuThresh;
+
 
 	gpuInRange(gpuImgHSV,gpuThresh,this->hsv_low,this->hsv_high);
 
@@ -124,7 +136,7 @@ vector<unsigned int> Tarp::findTarpVertices(vector<vector<Point> > tarpContours)
 	return tarpVertices;
 }
 
-void Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
+vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 {
 
 	//Get tarp contours
@@ -142,6 +154,22 @@ void Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 	//Get tarp standard deviations
 	vector<Scalar> tarpSTDevs = findTarpSTDevs(tarpContours, splitImgHSV);
 
-	return;
+	//Store whether a tarp is valid
+	vector<bool> tarpValid(tarpContours.size(), true);
+
+	// If > 10 vertices, not valid
+//	for(unsigned int i = 0; i < tarpContours.size(); i++)
+//	{
+//		if(tarpVertices[i] > 10)
+//		{
+//			tarpValid[i] = false;
+//		}
+//	}
+
+	//Sort by distance from
+
+	vector<Point> bestTarp(0);
+
+	return bestTarp;
 }
 
