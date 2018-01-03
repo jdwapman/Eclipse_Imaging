@@ -242,11 +242,6 @@ int main(int argc, char** argv )
     	cout << area[i] << endl;
     }
 
-
-
-
-
-
 	//Draw contours on image. Eventually, only 1 contour per tarp will need to be drawn
 	for(unsigned int i = 0; i< contours_approx.size(); i++ )
 	{
