@@ -206,6 +206,7 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 		//imshow("Final Image", drawmat);
 		//waitKey(0); //Wait for any key press before closing window
 
+	//TODO: Scale bestTarp to fit large output image (if desired)
 
 	return bestTarp;
 }

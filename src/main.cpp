@@ -22,6 +22,8 @@ void printTime(String operation, TickMeter& tm);
 int main(int argc, char** argv )
 {
 
+	/*----- COLOR VARIABLES -----*/
+
 	// Ranges of colors to look for in HSV color space
 	//TODO Get more precise values
 	int blue_ideal[3] = {0,0,0};
@@ -36,12 +38,9 @@ int main(int argc, char** argv )
 	int yellow_low[3] = {45,50,50};
 	int yellow_high[3] = {60,100,100};
 
-	//Create Tarp Objects
-	Tarp blue("Blue", blue_ideal, blue_low, blue_high);
-	Tarp pink("Pink", pink_ideal, pink_low, pink_high);
-	Tarp yellow("Yellow", yellow_ideal, yellow_low, yellow_high);
 
-	/*-----Initial setup and image capture-----*/
+
+	/*----- INITIALIZATION -----*/
 
 	//Check if CUDA-enabled GPU can be accessed
 	if(cuda::getCudaEnabledDeviceCount() < 1)
@@ -59,6 +58,15 @@ int main(int argc, char** argv )
 	TickMeter totalTime;
 	stepTime.start();
 	totalTime.start();
+
+	//Create Tarp Objects
+	Tarp blue("Blue", blue_ideal, blue_low, blue_high);
+	Tarp pink("Pink", pink_ideal, pink_low, pink_high);
+	Tarp yellow("Yellow", yellow_ideal, yellow_low, yellow_high);
+
+
+
+	/*----- PROCESS CAPTURED IMAGE -----*/
 
 	//Import images. imread imports in BGR format.
 	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/chaos.jpg", CV_LOAD_IMAGE_COLOR);
@@ -80,74 +88,86 @@ int main(int argc, char** argv )
 		return 2; //Error code that no data was gathered
 	}
 
+	//Run multiple times to get accurate timing info. First iteration
+	//Is always slower than normal
 	for(int count = 0; count < 5; count ++){
 
-	printTime("Start", stepTime);
-
-	//Resize with CPU. Faster than resizing using GPU due to memory latency
-	Mat cameraImgBGRSmall(rrows,rcols,imgType);
-	resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
-	cuda::GpuMat gpuCameraImgBGRSmall(cameraImgBGRSmall);
-	printTime("Resize CPU", stepTime);
-
-	//Declare GPU matrices to hold converted color space
-	cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
-
-	//Convert color space to HSV using GPU
-	cuda::cvtColor(gpuCameraImgBGRSmall, gpuImgHSV, CV_BGR2HSV,0);
-	Mat imgHSV(gpuImgHSV);
 
 
-	//Split HSV image into 3 channels
-	cuda::GpuMat gpuSplitImgHSV[3];
-	cuda::split(gpuImgHSV,gpuSplitImgHSV);
+		/*----- RESIZE/FILTER IMAGE -----*/
 
-	Mat splitImgHSV[3];
-	gpuSplitImgHSV[0].download(splitImgHSV[0]);
-	gpuSplitImgHSV[1].download(splitImgHSV[1]);
-	gpuSplitImgHSV[2].download(splitImgHSV[2]);
+		printTime("Start", stepTime);
 
-	printTime("Convert Color", stepTime);
+		//Resize with CPU. Faster than resizing using GPU due to memory latency
+		Mat cameraImgBGRSmall(rrows,rcols,imgType);
+		resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
+		cuda::GpuMat gpuCameraImgBGRSmall(cameraImgBGRSmall);
+		printTime("Resize CPU", stepTime);
 
-	//Blur image (Must use CPU for a 3-channel image)
-	boxFilter(imgHSV,imgHSV,-1,Size(5,5));
-	gpuImgHSV.upload(imgHSV);
+		//Declare GPU matrices to hold converted color space
+		cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
 
-	printTime("Blur", stepTime);
-
-	/*----- PER-TARP OPERATIONS -----*/
-	vector<vector<Point> > finalContours(3);
-	finalContours[0] = blue.findBestTarp(gpuImgHSV, splitImgHSV);
-	finalContours[1] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
-	finalContours[2] = yellow.findBestTarp(gpuImgHSV, splitImgHSV);
-
-	printTime("Decision", stepTime);
+		//Convert color space to HSV using GPU
+		cuda::cvtColor(gpuCameraImgBGRSmall, gpuImgHSV, CV_BGR2HSV,0);
+		Mat imgHSV(gpuImgHSV);
 
 
-	//Draw contours on image.
-	for(unsigned int i = 0; i< finalContours.size(); i++ )
-	{
-		Scalar color = Scalar(255,255,255);
-		if(finalContours[i].size() > 0){
-			drawContours( cameraImgBGRSmall, finalContours, i, color, -1, 8);
-		}
-		else
+		//Split HSV image into 3 channels
+		cuda::GpuMat gpuSplitImgHSV[3];
+		cuda::split(gpuImgHSV,gpuSplitImgHSV);
+
+		Mat splitImgHSV[3];
+		gpuSplitImgHSV[0].download(splitImgHSV[0]);
+		gpuSplitImgHSV[1].download(splitImgHSV[1]);
+		gpuSplitImgHSV[2].download(splitImgHSV[2]);
+
+		printTime("Convert Color", stepTime);
+
+		//Blur image (Must use CPU for a 3-channel image)
+		boxFilter(imgHSV,imgHSV,-1,Size(5,5));
+		gpuImgHSV.upload(imgHSV);
+
+		printTime("Blur", stepTime);
+
+
+
+		/*----- PER-TARP OPERATIONS -----*/
+
+		vector<vector<Point> > finalContours(3);
+		finalContours[0] = blue.findBestTarp(gpuImgHSV, splitImgHSV);
+		finalContours[1] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
+		finalContours[2] = yellow.findBestTarp(gpuImgHSV, splitImgHSV);
+
+		printTime("Decision", stepTime);
+
+		/*----- DISPLAY RESULTS -----*/
+
+		//Draw contours on image.
+		for(unsigned int i = 0; i< finalContours.size(); i++ )
 		{
-			cout << "No valid tarp" << endl;
+			Scalar color = Scalar(255,255,255);
+			if(finalContours[i].size() > 0){
+				drawContours( cameraImgBGRSmall, finalContours, i, color, -1, 8);
+			}
+			else
+			{
+				cout << "No valid tarp" << endl;
+			}
+
+		printTime("Draw Contour", stepTime);
+
+
 		}
-
-	printTime("Draw Contour", stepTime);
-
-
+			printTime("Total Time", totalTime);
+			cout << endl << endl;
 	}
-		printTime("Total Time", totalTime);
-		cout << endl << endl;
-	}
+
+
 	//Display window containing thresholded tarp
 //	namedWindow("Final Image",WINDOW_NORMAL);
 //	resizeWindow("Final Image",600,600);
-//    imshow("Final Image", cameraImgBGRSmall);
-//    waitKey(0); //Wait for any key press before closing window
+//	imshow("Final Image", cameraImgBGRSmall);
+//	waitKey(0); //Wait for any key press before closing window
 
     //NOTE: Failing to close the display window before running a new iteration of the code
     //can result in GPU memory errors
@@ -157,7 +177,9 @@ int main(int argc, char** argv )
     //imwrite("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/Output_Image.jpg",cameraImgBGRSmall);
     printTime("Stop Save", stepTime);
 
-    //Free GPU Resources
+
+
+    /*----- EXIT PROGRAM -----*/
 	cuda::resetDevice();
 
     return 0;
