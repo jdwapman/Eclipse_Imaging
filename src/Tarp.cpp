@@ -79,49 +79,74 @@ vector<vector<Point> > Tarp::findTarpContours(cuda::GpuMat gpuImgHSV)
 }
 
 //Get average color of each contour location
-vector< tuple<Scalar, Scalar, unsigned int> > Tarp::findTarpMeans(vector<vector<Point> > tarpContours, vector<Mat> splitImgHSV)
+vector< tuple<Scalar, Scalar, unsigned int> > Tarp::findTarpMeans(vector<vector<Point> > tarpContours, vector<Mat> splitImgHSV, vector<bool>& tarpValid)
 {
 	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeans(tarpContours.size());
 
 	for(unsigned int i = 0; i < tarpContours.size(); i++)
 	{
+		if(tarpValid[i] == true)
+		{
+			Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
 
-		Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
+			drawContours(mask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
 
-		drawContours(mask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
+			Scalar mean;
+			Scalar stddev;
+			meanStdDev(splitImgHSV[0], mean, stddev, mask);
 
-		Scalar mean;
-		Scalar stddev;
-		meanStdDev(splitImgHSV[0], mean, stddev, mask);
-
-		tarpMeans[i] = make_tuple(mean[0], stddev[0], i); //Gets average value of the points inside the mask
-
+			tarpMeans[i] = make_tuple(mean[0], stddev[0], i); //Gets average value of the points inside the mask
+		}
 	}
 
 	return tarpMeans;
 }
 
 //Find the area of each tarp contour. Return <area, index>
-vector< tuple<double, unsigned int> > Tarp::findTarpAreas(vector<vector<Point> > tarpContours)
+vector< tuple<double, unsigned int> > Tarp::findTarpAreas(vector<vector<Point> > tarpContours, vector<bool>& tarpValid)
 {
 	vector< tuple<double, unsigned int> > tarpAreas(tarpContours.size());
 
+	double area = 0;;
+
 	for(unsigned int i = 0; i < tarpAreas.size(); i++)
 	{
-		tarpAreas[i] = make_tuple(contourArea(tarpContours[i]), i);
+		if(tarpValid[i] == true)
+		{
+			area = contourArea(tarpContours[i]);
+
+			tarpAreas[i] = make_tuple(area, i);
+
+			if(area < 10)
+			{
+				tarpValid[i] = false;
+			}
+		}
 	}
 
 	return tarpAreas;
 }
 
-vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector<Point> > tarpContours)
+vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector<Point> > tarpContours, vector<bool>& tarpValid)
 {
 
 	vector< tuple<unsigned int, unsigned int> > tarpVertices(tarpContours.size());
 
+	double size = 0;
+
 	for(unsigned int i = 0; i < tarpContours.size(); i++)
 	{
-		tarpVertices[i] = make_tuple(tarpContours[i].size(), i);
+		if(tarpValid[i] == true)
+		{
+			size = tarpContours[i].size();
+
+			tarpVertices[i] = make_tuple(size, i);
+
+			if(size > 10)
+			{
+				tarpValid[i] = false;
+			}
+		}
 	}
 
 	return tarpVertices;
@@ -131,26 +156,26 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 vector<Point> Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV)
 {
 	TickMeter tm;
-	tm.start();
+
 
 	//Get tarp contours
 	vector<vector<Point> > tarpContours = findTarpContours(gpuImgHSV);
 
 	tm.stop();
-
+	unsigned int numContours = tarpContours.size();
 
 	//Store whether a tarp is valid
-	vector<bool> tarpValid(tarpContours.size(), true);
-
+	vector<bool> tarpValid(numContours, true);
+	tm.start();
 	//Get number of tarp vertices
-	vector< tuple<unsigned int, unsigned int> > tarpVertices = findTarpVertices(tarpContours);
+	vector< tuple<unsigned int, unsigned int> > tarpVertices = findTarpVertices(tarpContours, tarpValid);
 
 	//Get tarp areas
-	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours);
+	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours, tarpValid);
 
 	//Get tarp means & stddevs //TODO: Change from mean to delta from ideal
-	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanSTDs = findTarpMeans(tarpContours, splitImgHSV);
-
+	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanSTDs = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
+	tm.stop();
 	/*----- Sort &  make decision -----*/
 
 	vector<Point> bestTarp(0); //Default empty contour
@@ -163,17 +188,6 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgH
 		return bestTarp; //Return empty vector of points
 
 
-	//Reject tarps with > 10 vertices
-//	for(unsigned int i = 0; i < tarpVertices.size(); i++)
-//		if(get<0>(tarpVertices[i]) > 10)
-//			tarpValid[ get<1>(tarpVertices[i]) ] = false;
-
-	//Reject tarps of 0 area
-	for(unsigned int i = 0; i < tarpAreas.size(); i++)
-		if(get<0>(tarpAreas[i]) == 0)
-			tarpValid[ get<1>(tarpAreas[i]) ] = false;
-
-
 //	for(unsigned int i = 0; i < tarpAreas.size(); i++)
 //	{
 //		cout << get<0>(tarpAreas[i]) << "," << get<1>(tarpAreas[i]) << endl;
@@ -183,7 +197,7 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgH
 
 	//Find largest valid area. tarpAreas sorted largest to smallest, with indexes
 	//Corresponding to tarpValid, tarpContours
-	for(unsigned int i = 0; i < tarpContours.size(); i++)
+	for(unsigned int i = 0; i < numContours; i++)
 	{
 		if(tarpValid[ get<1>(tarpAreas[i]) ] == true)
 		{
