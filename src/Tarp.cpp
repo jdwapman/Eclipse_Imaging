@@ -128,7 +128,7 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 }
 
 
-vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, vector<Mat> splitImgHSV)
+vector<Point> Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV)
 {
 	TickMeter tm;
 	tm.start();
