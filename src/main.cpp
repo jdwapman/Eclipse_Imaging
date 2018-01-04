@@ -43,6 +43,17 @@ int main(int argc, char** argv )
 
 	/*-----Initial setup and image capture-----*/
 
+	//Check if CUDA-enabled GPU can be accessed
+	if(cuda::getCudaEnabledDeviceCount() < 1)
+	{
+		cerr << "No CUDA-enabled GPU detected" << endl;
+		return 1;
+	}
+
+	//Initialize GPU
+	cuda::setDevice(0);
+	cuda::resetDevice();
+
 	//Start timer
 	TickMeter stepTime;
 	TickMeter totalTime;
@@ -66,27 +77,25 @@ int main(int argc, char** argv )
 	if(cameraImgBGR.empty() == true)
 	{
 		cerr << "No image detected" << endl;
-		return 1; //Error code that no data was gathered
+		return 2; //Error code that no data was gathered
 	}
 
-	//Check if CUDA-enabled GPU can be accessed
-	if(cuda::getCudaEnabledDeviceCount() < 1)
-	{
-		cerr << "No CUDA-enabled GPU detected" << endl;
-		return 2;
-	}
+	printTime("Start", stepTime);
 
-	//Initialize GPU
-	cuda::setDevice(0);
-	cuda::resetDevice();
-
-	Mat cameraImgBGRSmall(rrows,rcols,imgType);
-
-	resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
-
+	cuda::GpuMat gpuCameraImgBGR(cameraImgBGR);
 	cuda::GpuMat gpuCameraImgBGRSmall(rrows,rcols,imgType);
+	cuda::resize(gpuCameraImgBGR,gpuCameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
+	Mat cameraImgBGRSmall(gpuCameraImgBGRSmall);
 
-	gpuCameraImgBGRSmall.upload(cameraImgBGRSmall);
+	//	Mat cameraImgBGRSmall(rrows,rcols,imgType);
+//
+//	resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
+//
+//	cuda::GpuMat gpuCameraImgBGRSmall(rrows,rcols,imgType);
+//
+//	gpuCameraImgBGRSmall.upload(cameraImgBGRSmall);
+
+	printTime("Resize", stepTime);
 
 	//Declare GPU matrices to hold converted color space
 	cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
@@ -95,7 +104,7 @@ int main(int argc, char** argv )
 	cuda::cvtColor(gpuCameraImgBGRSmall, gpuImgHSV, CV_BGR2HSV,0);
 	Mat imgHSV(gpuImgHSV);
 
-	printTime("Start", stepTime);
+
 	//Split HSV image into 3 channels
 	cuda::GpuMat gpuSplitImgHSV[3];
 	cuda::split(gpuImgHSV,gpuSplitImgHSV);
@@ -105,16 +114,20 @@ int main(int argc, char** argv )
 	gpuSplitImgHSV[1].download(splitImgHSV[1]);
 	gpuSplitImgHSV[2].download(splitImgHSV[2]);
 
+	printTime("Convert Color", stepTime);
+
 	//Blur image (Must use CPU for a 3-channel image)
 	boxFilter(imgHSV,imgHSV,-1,Size(5,5));
 	gpuImgHSV.upload(imgHSV);
-	printTime("Filter", stepTime);
+
+	printTime("Blur", stepTime);
 
 	/*----- PER-TARP OPERATIONS -----*/
 	vector<vector<Point> > finalContours(3);
 	finalContours[0] = blue.findBestTarp(gpuImgHSV, splitImgHSV);
 	finalContours[1] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
 	finalContours[2] = yellow.findBestTarp(gpuImgHSV, splitImgHSV);
+
 	printTime("Decision", stepTime);
 
 
