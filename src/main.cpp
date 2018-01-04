@@ -82,7 +82,7 @@ int main(int argc, char** argv )
 
 	Mat cameraImgBGRSmall(rrows,rcols,imgType);
 
-	resize(cameraImgBGR,cameraImgBGRSmall,Size(),1,1,INTER_LINEAR);
+	resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
 
 	cuda::GpuMat gpuCameraImgBGRSmall(rrows,rcols,imgType);
 
