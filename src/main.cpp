@@ -80,22 +80,15 @@ int main(int argc, char** argv )
 		return 2; //Error code that no data was gathered
 	}
 
+	for(int count = 0; count < 5; count ++){
+
 	printTime("Start", stepTime);
 
-	cuda::GpuMat gpuCameraImgBGR(cameraImgBGR);
-	cuda::GpuMat gpuCameraImgBGRSmall(rrows,rcols,imgType);
-	cuda::resize(gpuCameraImgBGR,gpuCameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
-	Mat cameraImgBGRSmall(gpuCameraImgBGRSmall);
-
-	//	Mat cameraImgBGRSmall(rrows,rcols,imgType);
-//
-//	resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
-//
-//	cuda::GpuMat gpuCameraImgBGRSmall(rrows,rcols,imgType);
-//
-//	gpuCameraImgBGRSmall.upload(cameraImgBGRSmall);
-
-	printTime("Resize", stepTime);
+	//Resize with CPU. Faster than resizing using GPU due to memory latency
+	Mat cameraImgBGRSmall(rrows,rcols,imgType);
+	resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
+	cuda::GpuMat gpuCameraImgBGRSmall(cameraImgBGRSmall);
+	printTime("Resize CPU", stepTime);
 
 	//Declare GPU matrices to hold converted color space
 	cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
@@ -142,21 +135,26 @@ int main(int argc, char** argv )
 		{
 			cout << "No valid tarp" << endl;
 		}
-	}
+
 	printTime("Draw Contour", stepTime);
 
+
+	}
+		printTime("Total Time", totalTime);
+		cout << endl << endl;
+	}
 	//Display window containing thresholded tarp
-	namedWindow("Final Image",WINDOW_NORMAL);
-	resizeWindow("Final Image",600,600);
-    imshow("Final Image", cameraImgBGRSmall);
-    waitKey(0); //Wait for any key press before closing window
+//	namedWindow("Final Image",WINDOW_NORMAL);
+//	resizeWindow("Final Image",600,600);
+//    imshow("Final Image", cameraImgBGRSmall);
+//    waitKey(0); //Wait for any key press before closing window
 
     //NOTE: Failing to close the display window before running a new iteration of the code
     //can result in GPU memory errors
 
     //Save image
 
-    imwrite("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/Output_Image.jpg",cameraImgBGRSmall);
+    //imwrite("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/Output_Image.jpg",cameraImgBGRSmall);
     printTime("Stop Save", stepTime);
 
     //Free GPU Resources
