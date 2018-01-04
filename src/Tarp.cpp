@@ -6,6 +6,7 @@
  */
 
 #include "Tarp.h"
+#include "tarpSort.h"
 
 #include <vector>
 #include <opencv2/opencv.hpp>
@@ -13,6 +14,7 @@
 #include <string>
 #include <tuple>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 using namespace cv;
@@ -92,7 +94,7 @@ vector< tuple<Scalar, Scalar, unsigned int> > Tarp::findTarpMeans(vector<vector<
 		Scalar stddev;
 		meanStdDev(splitImgHSV[0], mean, stddev, mask);
 
-		tarpMeans[i] = make_tuple(mean, stddev, i); //Gets average value of the points inside the mask
+		tarpMeans[i] = make_tuple(mean[0], stddev[0], i); //Gets average value of the points inside the mask
 
 	}
 
@@ -133,6 +135,9 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 	//Get tarp contours
 	vector<vector<Point> > tarpContours = findTarpContours(gpuImgHSV);
 
+	//Store whether a tarp is valid
+	vector<bool> tarpValid(tarpContours.size(), true);
+
 	//Get number of tarp vertices
 	vector< tuple<unsigned int, unsigned int> > tarpVertices = findTarpVertices(tarpContours);
 
@@ -142,14 +147,17 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 	//Get tarp means
 	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanSTDs = findTarpMeans(tarpContours, splitImgHSV);
 
-
-	//Store whether a tarp is valid
-	vector<bool> tarpValid(tarpContours.size(), true);
-
 	/*----- Sort &  make decision -----*/
 
-	vector<Point> bestTarp(0);
+	vector<Point> bestTarp(0); //Default empty contour
 
+	sort(tarpAreas.begin(), tarpAreas.end(), sortAreas);
+	sort(tarpVertices.begin(), tarpVertices.end(), sortVertices);
+
+	for(unsigned int i = 0; i < tarpAreas.size(); i++)
+	{
+		cout << get<0>(tarpVertices[i]) << "," << get<1>(tarpVertices[i]) << endl;
+	}
 
 	//Base Case 0
 	if (tarpContours.size() == 0)
@@ -157,28 +165,28 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 		return bestTarp; //Return empty vector of points
 	}
 
-	return bestTarp;
+
 
 	//draw contours
-//	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
-//
-//	//Draw contours on image.
-//		for(unsigned int i = 0; i< tarpContours.size(); i++ )
-//		{
-//			Scalar color = Scalar(255,255,255);
-//			if(tarpContours[i].size() > 0){
-//				drawContours( drawmat, tarpContours, i, color, 1, 8);
-//			}
-//			else
-//			{
-//				cout << "No valid tarp" << endl;
-//			}
-//		}
-//
-//		imshow("Final Image", drawmat);
-//		waitKey(0); //Wait for any key press before closing window
+	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
+
+	//Draw contours on image.
+		for(unsigned int i = 0; i< tarpContours.size(); i++ )
+		{
+			Scalar color = Scalar(255,255,255);
+			if(tarpContours[i].size() > 0){
+				drawContours( drawmat, tarpContours, i, color, 1, 8);
+			}
+			else
+			{
+				cout << "No valid tarp" << endl;
+			}
+		}
+
+		imshow("Final Image", drawmat);
+		waitKey(0); //Wait for any key press before closing window
 
 
-
+		return bestTarp;
 }
 

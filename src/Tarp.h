@@ -26,18 +26,19 @@ class Tarp {
 	int hsv_low[3];
 	int hsv_high[3];
 
-	//Target identification
-	double last_position = 0;
-
+	struct possibleTarp
+	{
+		Scalar mean;
+		Scalar stddev;
+		double area;
+		unsigned int numVertices;
+	};
 
 	//Private functions
 	vector< tuple<Scalar, Scalar, unsigned int> > findTarpMeans(vector<vector<Point> > tarpContours, Mat* splitImgHSV);
 	vector<vector<Point> > findTarpContours(cuda::GpuMat gpuImgHSV);
 	vector< tuple<double, unsigned int> > findTarpAreas(vector<vector<Point> > tarpContours);
 	vector< tuple<unsigned int, unsigned int> > findTarpVertices(vector<vector<Point> > tarpContours);
-
-	//Sorting functions
-	bool compare(tuple<Scalar, Scalar, unsigned int>);
 
 public:
 	Tarp(string color, int* ideal, int* low, int* high);

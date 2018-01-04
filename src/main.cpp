@@ -51,7 +51,7 @@ int main(int argc, char** argv )
 	//Import images. imread imports in BGR format.
 
 
-	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/pink.jpg", CV_LOAD_IMAGE_COLOR);
+	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/chaos.jpg", CV_LOAD_IMAGE_COLOR);
 
 	//Get image dimensions for preallocation. Can eventually replace with constants
 	int rows = cameraImgBGR.rows;
