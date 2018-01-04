@@ -128,7 +128,6 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 }
 
 
-
 vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 {
 
@@ -144,7 +143,7 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 	//Get tarp areas
 	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours);
 
-	//Get tarp means
+	//Get tarp means & stddevs //TODO: Change from mean to delta from ideal
 	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanSTDs = findTarpMeans(tarpContours, splitImgHSV);
 
 	/*----- Sort &  make decision -----*/
@@ -154,9 +153,21 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 	sort(tarpAreas.begin(), tarpAreas.end(), sortAreas);
 	sort(tarpVertices.begin(), tarpVertices.end(), sortVertices);
 
+	//Reject tarps with > 10 vertices
+	for(unsigned int i = 0; i < tarpVertices.size(); i++)
+		if(get<0>(tarpVertices[i]) > 10)
+			tarpValid[ get<1>(tarpVertices[i]) ] = false;
+
+	//Reject tarps of 0 area
+	for(unsigned int i = 0; i < tarpAreas.size(); i++)
+		if(get<0>(tarpAreas[i]) == 0)
+			tarpValid[ get<1>(tarpAreas[i]) ] = false;
+
+
 	for(unsigned int i = 0; i < tarpAreas.size(); i++)
 	{
-		cout << get<0>(tarpVertices[i]) << "," << get<1>(tarpVertices[i]) << endl;
+		//cout << get<0>(tarpAreas[i]) << "," << get<1>(tarpAreas[i]) << endl;
+		cout << tarpValid[i] << endl;
 	}
 
 	//Base Case 0
