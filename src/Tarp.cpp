@@ -153,10 +153,15 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 	sort(tarpAreas.begin(), tarpAreas.end(), sortAreas);
 	sort(tarpVertices.begin(), tarpVertices.end(), sortVertices);
 
+	//Base Case 0
+	if (tarpContours.size() == 0)
+		return bestTarp; //Return empty vector of points
+
+
 	//Reject tarps with > 10 vertices
-	for(unsigned int i = 0; i < tarpVertices.size(); i++)
-		if(get<0>(tarpVertices[i]) > 10)
-			tarpValid[ get<1>(tarpVertices[i]) ] = false;
+//	for(unsigned int i = 0; i < tarpVertices.size(); i++)
+//		if(get<0>(tarpVertices[i]) > 10)
+//			tarpValid[ get<1>(tarpVertices[i]) ] = false;
 
 	//Reject tarps of 0 area
 	for(unsigned int i = 0; i < tarpAreas.size(); i++)
@@ -164,40 +169,44 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 			tarpValid[ get<1>(tarpAreas[i]) ] = false;
 
 
-	for(unsigned int i = 0; i < tarpAreas.size(); i++)
+//	for(unsigned int i = 0; i < tarpAreas.size(); i++)
+//	{
+//		cout << get<0>(tarpAreas[i]) << "," << get<1>(tarpAreas[i]) << endl;
+//		cout << tarpValid[i] << endl;
+//	}
+
+
+	//Find largest valid area. tarpAreas sorted largest to smallest, with indexes
+	//Corresponding to tarpValid, tarpContours
+	for(unsigned int i = 0; i < tarpContours.size(); i++)
 	{
-		//cout << get<0>(tarpAreas[i]) << "," << get<1>(tarpAreas[i]) << endl;
-		cout << tarpValid[i] << endl;
+		if(tarpValid[ get<1>(tarpAreas[i]) ] == true)
+		{
+			bestTarp = tarpContours[ get<1>(tarpAreas[i]) ];
+			break;
+		}
 	}
-
-	//Base Case 0
-	if (tarpContours.size() == 0)
-	{
-		return bestTarp; //Return empty vector of points
-	}
-
-
 
 	//draw contours
-	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
+//	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
 
 	//Draw contours on image.
-		for(unsigned int i = 0; i< tarpContours.size(); i++ )
-		{
-			Scalar color = Scalar(255,255,255);
-			if(tarpContours[i].size() > 0){
-				drawContours( drawmat, tarpContours, i, color, 1, 8);
-			}
-			else
-			{
-				cout << "No valid tarp" << endl;
-			}
-		}
+//		for(unsigned int i = 0; i< tarpContours.size(); i++ )
+//		{
+//			Scalar color = Scalar(255,255,255);
+//			if(tarpContours[i].size() > 0){
+//				drawContours( drawmat, tarpContours, i, color, 1, 8);
+//			}
+//			else
+//			{
+//				cout << "No valid tarp" << endl;
+//			}
+//		}
 
-		imshow("Final Image", drawmat);
-		waitKey(0); //Wait for any key press before closing window
+		//imshow("Final Image", drawmat);
+		//waitKey(0); //Wait for any key press before closing window
 
 
-		return bestTarp;
+	return bestTarp;
 }
 

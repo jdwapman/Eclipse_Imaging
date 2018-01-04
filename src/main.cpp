@@ -23,17 +23,18 @@ int main(int argc, char** argv )
 {
 
 	// Ranges of colors to look for in HSV color space
+	//TODO Get more precise values
 	int blue_ideal[3] = {0,0,0};
-	int blue_low[3] = {100,150,0};
-	int blue_high[3] = {130,255,255};
+	int blue_low[3] = {200,65,50};
+	int blue_high[3] = {240,100,100};
 
 	int pink_ideal[3] = {0,0,0};
-	int pink_low[3] = {300,30,70};
+	int pink_low[3] = {300,20,70};
 	int pink_high[3] = {340,60,100};
 
 	int yellow_ideal[3] = {0,0,0};
-	int yellow_low[3] = {150,0,0};
-	int yellow_high[3] = {180,255,255};
+	int yellow_low[3] = {45,50,50};
+	int yellow_high[3] = {60,100,100};
 
 	//Create Tarp Objects
 	Tarp blue("Blue", blue_ideal, blue_low, blue_high);
@@ -49,8 +50,6 @@ int main(int argc, char** argv )
 	totalTime.start();
 
 	//Import images. imread imports in BGR format.
-
-
 	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/chaos.jpg", CV_LOAD_IMAGE_COLOR);
 
 	//Get image dimensions for preallocation. Can eventually replace with constants
@@ -83,7 +82,7 @@ int main(int argc, char** argv )
 
 	Mat cameraImgBGRSmall(rrows,rcols,imgType);
 
-	resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
+	resize(cameraImgBGR,cameraImgBGRSmall,Size(),1,1,INTER_LINEAR);
 
 	cuda::GpuMat gpuCameraImgBGRSmall(rrows,rcols,imgType);
 
@@ -113,7 +112,9 @@ int main(int argc, char** argv )
 
 	/*----- PER-TARP OPERATIONS -----*/
 	vector<vector<Point> > finalContours(3);
-	finalContours[0] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
+	finalContours[0] = blue.findBestTarp(gpuImgHSV, splitImgHSV);
+	finalContours[1] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
+	finalContours[2] = yellow.findBestTarp(gpuImgHSV, splitImgHSV);
 	printTime("Decision", stepTime);
 
 
@@ -132,6 +133,8 @@ int main(int argc, char** argv )
 	printTime("Draw Contour", stepTime);
 
 	//Display window containing thresholded tarp
+	namedWindow("Final Image",WINDOW_NORMAL);
+	resizeWindow("Final Image",600,600);
     imshow("Final Image", cameraImgBGRSmall);
     waitKey(0); //Wait for any key press before closing window
 
