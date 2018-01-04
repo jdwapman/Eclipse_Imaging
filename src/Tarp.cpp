@@ -79,7 +79,7 @@ vector<vector<Point> > Tarp::findTarpContours(cuda::GpuMat gpuImgHSV)
 }
 
 //Get average color of each contour location
-vector< tuple<Scalar, Scalar, unsigned int> > Tarp::findTarpMeans(vector<vector<Point> > tarpContours, Mat* splitImgHSV)
+vector< tuple<Scalar, Scalar, unsigned int> > Tarp::findTarpMeans(vector<vector<Point> > tarpContours, vector<Mat> splitImgHSV)
 {
 	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeans(tarpContours.size());
 
@@ -128,11 +128,16 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 }
 
 
-vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
+vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, vector<Mat> splitImgHSV)
 {
+	TickMeter tm;
+	tm.start();
 
 	//Get tarp contours
 	vector<vector<Point> > tarpContours = findTarpContours(gpuImgHSV);
+
+	tm.stop();
+
 
 	//Store whether a tarp is valid
 	vector<bool> tarpValid(tarpContours.size(), true);
@@ -186,7 +191,7 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 			break;
 		}
 	}
-
+	cout << "Find Contours" << ": "  << tm.getTimeMilli() << " ms" << endl;
 	//draw contours
 //	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
 

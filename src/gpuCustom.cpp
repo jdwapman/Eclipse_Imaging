@@ -39,12 +39,24 @@ void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high)
 	cuda::bitwise_and(dest, gpuTarps_Thresh_Below[1], dest);
 	cuda::bitwise_and(dest, gpuTarps_Thresh_Below[2], dest);
 
-	//Use this to display thresholding
+	//Use this to display thresholding image
 //	Mat cpuDest(dest);
 //	namedWindow("Thresholded Image",WINDOW_NORMAL);
 //	resizeWindow("Thresholded Image",600,600);
 //	imshow("Thresholded Image", cpuDest);
 //	waitKey(0); //Wait for any key press before closing window
 
+}
 
+void gpuBoxFilter(vector<cuda::GpuMat>& gpuSplitImgHSV, cuda::GpuMat& gpuImgHSV)
+{
+	Ptr<cuda::Filter> f = cuda::createBoxFilter(CV_8UC1, CV_8UC1, Size(5,5));
+
+	f->apply(gpuSplitImgHSV[0], gpuSplitImgHSV[0]);
+	f->apply(gpuSplitImgHSV[1], gpuSplitImgHSV[1]);
+	f->apply(gpuSplitImgHSV[2], gpuSplitImgHSV[2]);
+
+
+
+	return;
 }

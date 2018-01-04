@@ -100,7 +100,7 @@ int main(int argc, char** argv )
 
 		//Resize with CPU. Faster than resizing using GPU due to memory latency
 		Mat cameraImgBGRSmall(rrows,rcols,imgType);
-		resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.125,0.125,INTER_LINEAR);
+		resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.25,0.25,INTER_LINEAR);
 		cuda::GpuMat gpuCameraImgBGRSmall(cameraImgBGRSmall);
 		printTime("Resize CPU", stepTime);
 
@@ -113,10 +113,10 @@ int main(int argc, char** argv )
 
 
 		//Split HSV image into 3 channels
-		cuda::GpuMat gpuSplitImgHSV[3];
+		vector<cuda::GpuMat> gpuSplitImgHSV(3);
 		cuda::split(gpuImgHSV,gpuSplitImgHSV);
 
-		Mat splitImgHSV[3];
+		vector<Mat> splitImgHSV(3);
 		gpuSplitImgHSV[0].download(splitImgHSV[0]);
 		gpuSplitImgHSV[1].download(splitImgHSV[1]);
 		gpuSplitImgHSV[2].download(splitImgHSV[2]);
@@ -126,7 +126,9 @@ int main(int argc, char** argv )
 		//Blur image (Must use CPU for a 3-channel image)
 		boxFilter(imgHSV,imgHSV,-1,Size(5,5));
 		gpuImgHSV.upload(imgHSV);
-
+//		Ptr<cuda::Filter> f = cuda::createGaussianFilter(CV_8UC3, CV_8UC3, Size(5,5),20,20);
+//		f->apply(gpuImgHSV, gpuImgHSV);
+//		imgHSV(gpuImgHSV);
 		printTime("Blur", stepTime);
 
 

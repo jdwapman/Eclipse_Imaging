@@ -14,6 +14,6 @@ using namespace std;
 using namespace cv;
 
 void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high);
-
+void gpuBoxFilter(vector<cuda::GpuMat>& gpuSplitImgHSV, cuda::GpuMat& gpuImgHSV);
 
 #endif /* SRC_GPUCUSTOM_H_ */
