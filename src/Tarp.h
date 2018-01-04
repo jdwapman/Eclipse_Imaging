@@ -31,11 +31,13 @@ class Tarp {
 
 
 	//Private functions
-	vector<Scalar> findTarpMeans(vector<vector<Point> > tarpContours, Mat* splitImgHSV);
-	vector<Scalar> findTarpSTDevs(vector<vector<Point> > tarpContours, Mat* splitImgHSV);
+	vector< tuple<Scalar, Scalar, unsigned int> > findTarpMeans(vector<vector<Point> > tarpContours, Mat* splitImgHSV);
 	vector<vector<Point> > findTarpContours(cuda::GpuMat gpuImgHSV);
-	vector<double> findTarpAreas(vector<vector<Point> > tarpContours);
-	vector<unsigned int> findTarpVertices(vector<vector<Point> > tarpContours);
+	vector< tuple<double, unsigned int> > findTarpAreas(vector<vector<Point> > tarpContours);
+	vector< tuple<unsigned int, unsigned int> > findTarpVertices(vector<vector<Point> > tarpContours);
+
+	//Sorting functions
+	bool compare(tuple<Scalar, Scalar, unsigned int>);
 
 public:
 	Tarp(string color, int* ideal, int* low, int* high);

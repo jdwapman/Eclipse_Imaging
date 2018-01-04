@@ -39,4 +39,10 @@ void gpuInRange(cuda::GpuMat& src, cuda::GpuMat& dest, int* low, int* high)
 	cuda::bitwise_and(dest, gpuTarps_Thresh_Below[1], dest);
 	cuda::bitwise_and(dest, gpuTarps_Thresh_Below[2], dest);
 
+	//Use this to display thresholding
+//	Mat cpuDest(dest);
+//	imshow("Thresholded Image", cpuDest);
+//	waitKey(0); //Wait for any key press before closing window
+
+
 }

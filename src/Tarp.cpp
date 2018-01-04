@@ -11,6 +11,8 @@
 #include <opencv2/opencv.hpp>
 #include "gpuCustom.h"
 #include <string>
+#include <tuple>
+#include <algorithm>
 
 using namespace std;
 using namespace cv;
@@ -75,9 +77,9 @@ vector<vector<Point> > Tarp::findTarpContours(cuda::GpuMat gpuImgHSV)
 }
 
 //Get average color of each contour location
-vector<Scalar> Tarp::findTarpMeans(vector<vector<Point> > tarpContours, Mat* splitImgHSV)
+vector< tuple<Scalar, Scalar, unsigned int> > Tarp::findTarpMeans(vector<vector<Point> > tarpContours, Mat* splitImgHSV)
 {
-	vector<Scalar> tarpMeans(tarpContours.size(),0);
+	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeans(tarpContours.size());
 
 	for(unsigned int i = 0; i < tarpContours.size(); i++)
 	{
@@ -85,56 +87,45 @@ vector<Scalar> Tarp::findTarpMeans(vector<vector<Point> > tarpContours, Mat* spl
 		Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
 
 		drawContours(mask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
-		tarpMeans[i] = mean(splitImgHSV[0],mask); //Gets average value of the points inside the mask
+
+		Scalar mean;
+		Scalar stddev;
+		meanStdDev(splitImgHSV[0], mean, stddev, mask);
+
+		tarpMeans[i] = make_tuple(mean, stddev, i); //Gets average value of the points inside the mask
 
 	}
 
 	return tarpMeans;
 }
 
-//Get std deviation of each contour location
-vector<Scalar> Tarp::findTarpSTDevs(vector<vector<Point> > tarpContours, Mat* splitImgHSV)
+//Find the area of each tarp contour. Return <area, index>
+vector< tuple<double, unsigned int> > Tarp::findTarpAreas(vector<vector<Point> > tarpContours)
 {
-	vector<Scalar> tarpSTDevs(tarpContours.size(),0);
-
-	for(unsigned int i = 0; i < tarpContours.size(); i++)
-	{
-
-		Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
-
-		drawContours(mask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
-		tarpSTDevs[i] = mean(splitImgHSV[0],mask); //Gets STD of the points inside the mask
-
-	}
-
-	return tarpSTDevs;
-}
-
-//Find the area of each tarp contour
-vector<double> Tarp::findTarpAreas(vector<vector<Point> > tarpContours)
-{
-	vector<double> tarpAreas(tarpContours.size(),0);
+	vector< tuple<double, unsigned int> > tarpAreas(tarpContours.size());
 
 	for(unsigned int i = 0; i < tarpAreas.size(); i++)
 	{
-		tarpAreas[i] = contourArea(tarpContours[i]);
+		tarpAreas[i] = make_tuple(contourArea(tarpContours[i]), i);
 	}
 
 	return tarpAreas;
 }
 
-vector<unsigned int> Tarp::findTarpVertices(vector<vector<Point> > tarpContours)
+vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector<Point> > tarpContours)
 {
 
-	vector<unsigned int> tarpVertices(tarpContours.size(), 0);
+	vector< tuple<unsigned int, unsigned int> > tarpVertices(tarpContours.size());
 
 	for(unsigned int i = 0; i < tarpContours.size(); i++)
 	{
-		tarpVertices[i] = tarpContours[i].size();
+		tarpVertices[i] = make_tuple(tarpContours[i].size(), i);
 	}
 
 	return tarpVertices;
 }
+
+
 
 vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 {
@@ -143,33 +134,51 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat gpuImgHSV, Mat* splitImgHSV)
 	vector<vector<Point> > tarpContours = findTarpContours(gpuImgHSV);
 
 	//Get number of tarp vertices
-	vector<unsigned int> tarpVertices = findTarpVertices(tarpContours);
+	vector< tuple<unsigned int, unsigned int> > tarpVertices = findTarpVertices(tarpContours);
 
 	//Get tarp areas
-	vector<double> tarpAreas = findTarpAreas(tarpContours);
+	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours);
 
 	//Get tarp means
-	vector<Scalar> tarpMeans = findTarpMeans(tarpContours, splitImgHSV);
+	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanSTDs = findTarpMeans(tarpContours, splitImgHSV);
 
-	//Get tarp standard deviations
-	vector<Scalar> tarpSTDevs = findTarpSTDevs(tarpContours, splitImgHSV);
 
 	//Store whether a tarp is valid
 	vector<bool> tarpValid(tarpContours.size(), true);
 
-	// If > 10 vertices, not valid
-//	for(unsigned int i = 0; i < tarpContours.size(); i++)
-//	{
-//		if(tarpVertices[i] > 10)
-//		{
-//			tarpValid[i] = false;
-//		}
-//	}
-
-	//Sort by distance from
+	/*----- Sort &  make decision -----*/
 
 	vector<Point> bestTarp(0);
 
+
+	//Base Case 0
+	if (tarpContours.size() == 0)
+	{
+		return bestTarp; //Return empty vector of points
+	}
+
 	return bestTarp;
+
+	//draw contours
+//	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
+//
+//	//Draw contours on image.
+//		for(unsigned int i = 0; i< tarpContours.size(); i++ )
+//		{
+//			Scalar color = Scalar(255,255,255);
+//			if(tarpContours[i].size() > 0){
+//				drawContours( drawmat, tarpContours, i, color, 1, 8);
+//			}
+//			else
+//			{
+//				cout << "No valid tarp" << endl;
+//			}
+//		}
+//
+//		imshow("Final Image", drawmat);
+//		waitKey(0); //Wait for any key press before closing window
+
+
+
 }
 

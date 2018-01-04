@@ -28,8 +28,8 @@ int main(int argc, char** argv )
 	int blue_high[3] = {130,255,255};
 
 	int pink_ideal[3] = {0,0,0};
-	int pink_low[3] = {310,45,70};
-	int pink_high[3] = {330,55,90};
+	int pink_low[3] = {300,30,70};
+	int pink_high[3] = {340,60,100};
 
 	int yellow_ideal[3] = {0,0,0};
 	int yellow_low[3] = {150,0,0};
@@ -50,7 +50,8 @@ int main(int argc, char** argv )
 
 	//Import images. imread imports in BGR format.
 
-	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/chaos2.jpg", CV_LOAD_IMAGE_COLOR);
+
+	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/pink.jpg", CV_LOAD_IMAGE_COLOR);
 
 	//Get image dimensions for preallocation. Can eventually replace with constants
 	int rows = cameraImgBGR.rows;
@@ -108,6 +109,7 @@ int main(int argc, char** argv )
 	//Blur image (Must use CPU for a 3-channel image)
 	boxFilter(imgHSV,imgHSV,-1,Size(5,5));
 	gpuImgHSV.upload(imgHSV);
+	printTime("Filter", stepTime);
 
 	/*----- PER-TARP OPERATIONS -----*/
 	vector<vector<Point> > finalContours(3);
@@ -127,7 +129,7 @@ int main(int argc, char** argv )
 			cout << "No valid tarp" << endl;
 		}
 	}
-
+	printTime("Draw Contour", stepTime);
 
 	//Display window containing thresholded tarp
     imshow("Final Image", cameraImgBGRSmall);
@@ -137,7 +139,9 @@ int main(int argc, char** argv )
     //can result in GPU memory errors
 
     //Save image
+
     imwrite("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/Output_Image.jpg",cameraImgBGRSmall);
+    printTime("Stop Save", stepTime);
 
     //Free GPU Resources
 	cuda::resetDevice();
