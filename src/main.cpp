@@ -88,6 +88,8 @@ int main(int argc, char** argv )
 		return 2; //Error code that no data was gathered
 	}
 
+	Mat cameraImgBGRSmall(rrows,rcols,imgType);
+
 	//Run multiple times to get accurate timing info. First iteration
 	//Is always slower than normal
 	for(int count = 0; count < 5; count ++){
@@ -99,7 +101,7 @@ int main(int argc, char** argv )
 		printTime("Start", stepTime);
 
 		//Resize with CPU. Faster than resizing using GPU due to memory latency
-		Mat cameraImgBGRSmall(rrows,rcols,imgType);
+
 		resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.25,0.25,INTER_LINEAR);
 		cuda::GpuMat gpuCameraImgBGRSmall(cameraImgBGRSmall);
 		printTime("Resize CPU", stepTime);
@@ -156,7 +158,7 @@ int main(int argc, char** argv )
 				cout << "No valid tarp" << endl;
 			}
 
-		printTime("Draw Contour", stepTime);
+		//printTime("Draw Contour", stepTime);
 
 
 		}
@@ -166,10 +168,10 @@ int main(int argc, char** argv )
 
 
 	//Display window containing thresholded tarp
-//	namedWindow("Final Image",WINDOW_NORMAL);
-//	resizeWindow("Final Image",600,600);
-//	imshow("Final Image", cameraImgBGRSmall);
-//	waitKey(0); //Wait for any key press before closing window
+	namedWindow("Final Image",WINDOW_NORMAL);
+	resizeWindow("Final Image",600,600);
+	imshow("Final Image", cameraImgBGRSmall);
+	waitKey(0); //Wait for any key press before closing window
 
     //NOTE: Failing to close the display window before running a new iteration of the code
     //can result in GPU memory errors
