@@ -29,7 +29,7 @@ class Tarp {
 
 	//Private functions
 	vector< tuple<Scalar, Scalar, unsigned int> > findTarpMeans(vector<vector<Point> > tarpContours, vector<Mat> splitImgHSV, vector<bool>& tarpValid);
-	vector<vector<Point> > findTarpContours(cuda::GpuMat gpuImgHSV);
+	vector<vector<Point> > findTarpContours(Mat imgHSV);
 	vector< tuple<double, unsigned int> > findTarpAreas(vector<vector<Point> > tarpContours, vector<bool>& tarpValid);
 	vector< tuple<unsigned int, unsigned int> > findTarpVertices(vector<vector<Point> > tarpContours, vector<bool>& tarpValid);
 
@@ -39,7 +39,7 @@ public:
 
 	//Find most likely tarp
 	//vector<Point> findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV);
-	void findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp);
+	void findBestTarp(Mat& gpuImgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp);
 };
 
 

@@ -25,10 +25,6 @@ Mat getImage();
 void printTime(String operation, TickMeter& tm);
 void saveImage(Mat& img, string path);
 
-void foo()
-{
-
-}
 
 int main(int argc, char** argv )
 {
@@ -144,15 +140,16 @@ int main(int argc, char** argv )
 		cuda::GpuMat gpuCameraImgBGRSmall(cameraImgBGRSmall);
 		printTime("Resize CPU", stepTime);
 
-		//Declare GPU matrices to hold converted color space
-		cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
-
-		//Convert color space to HSV using GPU
+//		//Declare GPU matrices to hold converted color space
+//		cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
+//
+//		//Convert color space to HSV using GPU
+		cuda::GpuMat gpuImgHSV;
 		cuda::cvtColor(gpuCameraImgBGRSmall, gpuImgHSV, CV_BGR2HSV,0);
 		Mat imgHSV(gpuImgHSV);
-
-
-		//Split HSV image into 3 channels
+//
+//
+//		//Split HSV image into 3 channels
 		vector<cuda::GpuMat> gpuSplitImgHSV(3);
 		cuda::split(gpuImgHSV,gpuSplitImgHSV);
 
@@ -160,6 +157,13 @@ int main(int argc, char** argv )
 		gpuSplitImgHSV[0].download(splitImgHSV[0]);
 		gpuSplitImgHSV[1].download(splitImgHSV[1]);
 		gpuSplitImgHSV[2].download(splitImgHSV[2]);
+
+//		Mat imgHSV;
+//		cvtColor(cameraImgBGRSmall, imgHSV, CV_BGR2HSV,0);
+//		vector<Mat> splitImgHSV(3);
+//		split(imgHSV, splitImgHSV);
+
+		//GPU Split faster than CPU
 
 		printTime("Convert Color", stepTime);
 
@@ -186,9 +190,9 @@ int main(int argc, char** argv )
 
 
 
-		thread findBlue(&Tarp::findBestTarp,&blue, ref(gpuImgHSV), ref(splitImgHSV),ref(finalContours[0]));
-		thread findPink(&Tarp::findBestTarp,&pink, ref(gpuImgHSV), ref(splitImgHSV),ref(finalContours[1]));
-		thread findYellow(&Tarp::findBestTarp,&yellow, ref(gpuImgHSV), ref(splitImgHSV),ref(finalContours[2]));
+		thread findBlue(&Tarp::findBestTarp,&blue, ref(imgHSV), ref(splitImgHSV),ref(finalContours[0]));
+		thread findPink(&Tarp::findBestTarp,&pink, ref(imgHSV), ref(splitImgHSV),ref(finalContours[1]));
+		thread findYellow(&Tarp::findBestTarp,&yellow, ref(imgHSV), ref(splitImgHSV),ref(finalContours[2]));
 		findBlue.join();
 		findPink.join();
 		findYellow.join();

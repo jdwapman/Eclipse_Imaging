@@ -48,19 +48,27 @@ Tarp::~Tarp()
 }
 
 //Identify possible tarp contours for a given HSV image
-vector<vector<Point> > Tarp::findTarpContours(cuda::GpuMat gpuImgHSV)
+vector<vector<Point> > Tarp::findTarpContours(Mat imgHSV)
 {
 
 	//Apply thresholding.
 	//This isolates the desired color and makes it easier for the following
 	//edge detection algorithm to identify the tarps
 
-	cuda::GpuMat gpuThresh;
+	Mat cpuThresh;
 
 
-	gpuInRange(gpuImgHSV,gpuThresh,this->hsv_low,this->hsv_high);
+	Scalar low(100,50,50);
+	Scalar high(130,100,100);
+	TickMeter tm;
+	tm.start();
+	inRange(imgHSV, low, high, cpuThresh);
+	tm.stop();
+	cout << "CPU Thresh" << ": "  << tm.getTimeMilli() << " ms" << endl;
 
-	Mat cpuThresh(gpuThresh); //Save to CPU
+	//TODO: try replacing with cpu inrange
+
+	//Mat cpuThresh(gpuThresh); //Save to CPU
 
 	vector<vector<Point> > contours, contours_approx;
 	vector<Vec4i> hierarchy;
@@ -230,12 +238,12 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 //	return bestTarp;
 //}
 
-void Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp)
+void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp)
 {
 
 
 	//Get tarp contours
-	vector<vector<Point> > tarpContours = findTarpContours(gpuImgHSV);
+	vector<vector<Point> > tarpContours = findTarpContours(imgHSV);
 
 
 	unsigned int numContours = tarpContours.size();
