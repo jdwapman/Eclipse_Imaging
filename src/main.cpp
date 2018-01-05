@@ -12,8 +12,11 @@
 #include <opencv2/opencv.hpp> //OpenCV library
 #include "Tarp.h"
 
+#include "boost/filesystem.hpp"
+
 using namespace std;
 using namespace cv;
+using namespace boost::filesystem;
 
 //Forware-declare functions
 Mat getImage();
@@ -53,11 +56,7 @@ int main(int argc, char** argv )
 	cuda::setDevice(0);
 	cuda::resetDevice();
 
-	//Start timer
-	TickMeter stepTime;
-	TickMeter totalTime;
-	stepTime.start();
-	totalTime.start();
+
 
 	//Create Tarp Objects
 	Tarp blue("Blue", blue_ideal, blue_low, blue_high);
@@ -67,38 +66,53 @@ int main(int argc, char** argv )
 
 
 	/*----- PROCESS CAPTURED IMAGE -----*/
+	path p("/home/jwapman/Eclipse_Workspace/Target_Detection/Input_Images");
+	directory_iterator end_itr;
 
-	//Import images. imread imports in BGR format.
-	Mat cameraImgBGR = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/chaos.jpg", CV_LOAD_IMAGE_COLOR);
+    // cycle through the directory
+    for (directory_iterator itr(p); itr != end_itr; ++itr)
+    {
 
-	//Get image dimensions for preallocation. Can eventually replace with constants
-	int rows = cameraImgBGR.rows;
-	int cols = cameraImgBGR.cols;
-	int imgType = cameraImgBGR.type();
+    	//Path strings
+		string currentFilePath = itr->path().string();
+		string currentFileName = itr->path().filename().string();
+		cout << "Reading " << currentFileName << endl;
 
-	//Reduced image dimensions
-	double scale = (1.0/8.0);
-	int rrows = rows * scale;
-	int rcols = cols * scale;
+		//Import image. imread imports in BGR format.
+		Mat cameraImgBGR = imread(currentFilePath, CV_LOAD_IMAGE_COLOR);
 
-	//Check image exists
-	if(cameraImgBGR.empty() == true)
-	{
-		cerr << "No image detected" << endl;
-		return 2; //Error code that no data was gathered
-	}
+		//Start timer
+		TickMeter stepTime;
+		TickMeter totalTime;
+		stepTime.start();
+		totalTime.start();
 
-	Mat cameraImgBGRSmall(rrows,rcols,imgType);
+		//Get image dimensions for preallocation. Can eventually replace with constants
+		int rows = cameraImgBGR.rows;
+		int cols = cameraImgBGR.cols;
+		int imgType = cameraImgBGR.type();
 
-	//Run multiple times to get accurate timing info. First iteration
-	//Is always slower than normal
-	for(int count = 0; count < 5; count ++){
+		//Reduced image dimensions
+		double scale = (1.0/8.0);
+		int rrows = rows * scale;
+		int rcols = cols * scale;
 
+		//Check image exists
+		if(cameraImgBGR.empty() == true)
+		{
+			cerr << "No image detected" << endl;
+			return 2; //Error code that no data was gathered
+		}
+
+		Mat cameraImgBGRSmall(rrows,rcols,imgType);
+
+		printTime("Check Image", stepTime);
+
+		//Run multiple times to get accurate timing info. First iteration
+		//Is always slower than normal
 
 
 		/*----- RESIZE/FILTER IMAGE -----*/
-
-		printTime("Start", stepTime);
 
 		//Resize with CPU. Faster than resizing using GPU due to memory latency
 
@@ -163,25 +177,25 @@ int main(int argc, char** argv )
 
 		}
 			printTime("Total Time", totalTime);
-			cout << endl << endl;
-	}
 
 
-	//Display window containing thresholded tarp
-	namedWindow("Final Image",WINDOW_NORMAL);
-	resizeWindow("Final Image",600,600);
-	imshow("Final Image", cameraImgBGRSmall);
-	waitKey(0); //Wait for any key press before closing window
+		//Display window containing thresholded tarp
+		//	namedWindow("Final Image",WINDOW_NORMAL);
+		//	resizeWindow("Final Image",600,600);
+		//	imshow("Final Image", cameraImgBGRSmall);
+		//	waitKey(0); //Wait for any key press before closing window
 
-    //NOTE: Failing to close the display window before running a new iteration of the code
-    //can result in GPU memory errors
+		//NOTE: Failing to close the display window before running a new iteration of the code
+		//can result in GPU memory errors
 
-    //Save image
+		//Save image file
+		string writePath = "/home/jwapman/Eclipse_Workspace/Target_Detection/Output_Images/" + currentFileName + "_output.jpg";
+		imwrite(writePath,cameraImgBGRSmall);
+		printTime("Stop Save", stepTime);
 
-    //imwrite("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/Output_Image.jpg",cameraImgBGRSmall);
-    printTime("Stop Save", stepTime);
+		cout << endl << endl;
 
-
+    }
 
     /*----- EXIT PROGRAM -----*/
 	cuda::resetDevice();

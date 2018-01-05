@@ -44,7 +44,7 @@ all: Target_Detection
 Target_Detection: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L/usr/include -o "Target_Detection" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L/usr/local/lib -o "Target_Detection" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
