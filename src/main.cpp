@@ -65,18 +65,33 @@ int main(int argc, char** argv )
 
 
 
-	/*----- PROCESS CAPTURED IMAGE -----*/
+	/*----- SET UP FOLDER -----*/
 	path p("/home/jwapman/Eclipse_Workspace/Target_Detection/Input_Images");
-	directory_iterator end_itr;
+	recursive_directory_iterator end_itr;
 
-    // cycle through the directory
-    for (directory_iterator itr(p); itr != end_itr; ++itr)
+    /*----- PROCESS ALL IMAGES IN FOLDER -----*/
+    for (recursive_directory_iterator itr(p); itr != end_itr; ++itr)
     {
-
     	//Path strings
 		string currentFilePath = itr->path().string();
 		string currentFileName = itr->path().filename().string();
 		cout << "Reading " << currentFileName << endl;
+
+		//If directory, make folder and continue
+		if (is_directory(itr->path()))
+		{
+			size_t index = 0;
+			string outputDirectoryPath = currentFilePath;
+			index = outputDirectoryPath.find("Input", index);
+			outputDirectoryPath.replace(index,5,"Output"); //Replace "Input" with "Output
+
+			create_directory(outputDirectoryPath);
+
+			continue;
+
+		}
+
+		/*----- READ & CHECK -----*/
 
 		//Import image. imread imports in BGR format.
 		Mat cameraImgBGR = imread(currentFilePath, CV_LOAD_IMAGE_COLOR);
@@ -100,8 +115,8 @@ int main(int argc, char** argv )
 		//Check image exists
 		if(cameraImgBGR.empty() == true)
 		{
-			cerr << "No image detected" << endl;
-			return 2; //Error code that no data was gathered
+			cout << "No image detected" << endl;
+			continue; //Error code that no data was gathered
 		}
 
 		Mat cameraImgBGRSmall(rrows,rcols,imgType);
@@ -172,11 +187,10 @@ int main(int argc, char** argv )
 				cout << "No valid tarp" << endl;
 			}
 
-		//printTime("Draw Contour", stepTime);
+		printTime("Draw Contours", stepTime);
 
 
 		}
-			printTime("Total Time", totalTime);
 
 
 		//Display window containing thresholded tarp
@@ -189,9 +203,16 @@ int main(int argc, char** argv )
 		//can result in GPU memory errors
 
 		//Save image file
-		string writePath = "/home/jwapman/Eclipse_Workspace/Target_Detection/Output_Images/" + currentFileName + "_output.jpg";
+		size_t index = 0;
+		string writePath = currentFilePath;
+		index = writePath.find("Input", index);
+		writePath.replace(index,5,"Output"); //Replace "Input" with "Output
+		cout << writePath << endl;
 		imwrite(writePath,cameraImgBGRSmall);
-		printTime("Stop Save", stepTime);
+
+		printTime("Save Image", stepTime);
+
+		printTime("Total Time", totalTime);
 
 		cout << endl << endl;
 
