@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <opencv2/opencv.hpp> //OpenCV library
 #include "Tarp.h"
+#include <future>
+#include <chrono>
 
 #include "boost/filesystem.hpp"
 
@@ -21,6 +23,12 @@ using namespace boost::filesystem;
 //Forware-declare functions
 Mat getImage();
 void printTime(String operation, TickMeter& tm);
+void saveImage(Mat& img, string path);
+
+void foo()
+{
+
+}
 
 int main(int argc, char** argv )
 {
@@ -66,8 +74,8 @@ int main(int argc, char** argv )
 
 
 	/*----- SET UP FOLDER -----*/
-	path p("/home/jwapman/Eclipse_Workspace/Target_Detection/Input_Images"); //Can select smaller folder
-	//path p("/home/jwapman/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images"); //Can select smaller folder
+	//path p("/home/jwapman/Eclipse_Workspace/Target_Detection/Input_Images"); //Can select smaller folder
+	path p("/home/jwapman/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images"); //Can select smaller folder
 	recursive_directory_iterator end_itr;
 
     /*----- PROCESS ALL IMAGES IN FOLDER -----*/
@@ -161,55 +169,76 @@ int main(int argc, char** argv )
 //		Ptr<cuda::Filter> f = cuda::createGaussianFilter(CV_8UC3, CV_8UC3, Size(5,5),20,20);
 //		f->apply(gpuImgHSV, gpuImgHSV);
 //		imgHSV(gpuImgHSV);
+
 		printTime("Blur", stepTime);
+
+//		auto findBlue = async(&Tarp::findBestTarp, &blue, ref(gpuImgHSV), ref(splitImgHSV));
+//		auto findPink = async(&Tarp::findBestTarp, &pink, ref(gpuImgHSV), ref(splitImgHSV));
+//		auto findYellow = async(&Tarp::findBestTarp, &yellow, ref(gpuImgHSV), ref(splitImgHSV));
 
 
 
 		/*----- PER-TARP OPERATIONS -----*/
 
+		auto start = chrono::high_resolution_clock::now();
+
 		vector<vector<Point> > finalContours(3);
-		finalContours[0] = blue.findBestTarp(gpuImgHSV, splitImgHSV);
-		finalContours[1] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
-		finalContours[2] = yellow.findBestTarp(gpuImgHSV, splitImgHSV);
+
+
+
+		thread findBlue(&Tarp::findBestTarp,&blue, ref(gpuImgHSV), ref(splitImgHSV),ref(finalContours[0]));
+		thread findPink(&Tarp::findBestTarp,&pink, ref(gpuImgHSV), ref(splitImgHSV),ref(finalContours[1]));
+		thread findYellow(&Tarp::findBestTarp,&yellow, ref(gpuImgHSV), ref(splitImgHSV),ref(finalContours[2]));
+		findBlue.join();
+		findPink.join();
+		findYellow.join();
+//		findBlue.wait();
+//		findPink.wait();
+//		findYellow.wait();
+
+		auto stop = chrono::high_resolution_clock::now();
+
+		cout << "Thread time: " << chrono::duration_cast<chrono::milliseconds>(stop-start).count() << " ms" << endl;
+
+//		finalContours[0] = findBlue.get();
+//		finalContours[1] = findPink.get();
+//		finalContours[2] = findYellow.get();
+
+//		finalContours[0] = blue.findBestTarp(gpuImgHSV, splitImgHSV);
+		//finalContours[1] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
+		//finalContours[2] = yellow.findBestTarp(gpuImgHSV, splitImgHSV);
 
 		printTime("Decision", stepTime);
 
 		/*----- DISPLAY RESULTS -----*/
 
 		//Draw contours on image.
+		Scalar color[3] = {Scalar(0,0,255),Scalar(255,0,0),Scalar(0,255,0)};
 		for(unsigned int i = 0; i< finalContours.size(); i++ )
 		{
-			Scalar color = Scalar(255,255,255);
 			if(finalContours[i].size() > 0){
-				drawContours( cameraImgBGRSmall, finalContours, i, color, -1, 8);
+				drawContours( cameraImgBGRSmall, finalContours, i, color[i], 3, 8);
 			}
 			else
 			{
 				cout << "No valid tarp" << endl;
 			}
+		}
 
 		printTime("Draw Contours", stepTime);
 
-
-		}
-
-
 		//Display window containing thresholded tarp
-		//	namedWindow("Final Image",WINDOW_NORMAL);
-		//	resizeWindow("Final Image",600,600);
-		//	imshow("Final Image", cameraImgBGRSmall);
-		//	waitKey(0); //Wait for any key press before closing window
+//		namedWindow("Final Image",WINDOW_NORMAL);
+//		resizeWindow("Final Image",600,600);
+//		imshow("Final Image", cameraImgBGRSmall);
+//		waitKey(0); //Wait for any key press before closing window
 
 		//NOTE: Failing to close the display window before running a new iteration of the code
 		//can result in GPU memory errors
 
 		//Save image file
-		size_t index = 0;
-		string writePath = currentFilePath;
-		index = writePath.find("Input", index);
-		writePath.replace(index,5,"Output"); //Replace "Input" with "Output
-		cout << writePath << endl;
-		imwrite(writePath,cameraImgBGRSmall);
+		thread saveFinalImg(saveImage, ref(cameraImgBGRSmall), currentFilePath);
+		saveFinalImg.detach();
 
 		printTime("Save Image", stepTime);
 
@@ -230,6 +259,17 @@ int main(int argc, char** argv )
 
 //Function to import an image. Currently only reads files from filesystem.
 //In the future, expand to include code for accessing the camera
+void saveImage(Mat& img, string path)
+{
+	size_t index = 0;
+	string writePath = path;
+	index = writePath.find("Input", index);
+	writePath.replace(index,5,"Output"); //Replace "Input" with "Output
+	cout << writePath << endl;
+	imwrite(writePath,img);
+}
+
+
 Mat getImage()
 {
 	return imread("/home/jwapman/Eclipse_Workspace/Target_Detection/Images/tarps.jpg", CV_LOAD_IMAGE_COLOR);

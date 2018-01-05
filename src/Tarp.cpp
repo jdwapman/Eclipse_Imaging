@@ -7,7 +7,7 @@
 
 #include "Tarp.h"
 #include "tarpSort.h"
-
+#include <unistd.h>
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include "gpuCustom.h"
@@ -154,7 +154,83 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 }
 
 
-vector<Point> Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV)
+//vector<Point> Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV)
+//{
+//
+//
+//	//Get tarp contours
+//	vector<vector<Point> > tarpContours = findTarpContours(gpuImgHSV);
+//
+//
+//	unsigned int numContours = tarpContours.size();
+//
+//	//Store whether a tarp is valid
+//	vector<bool> tarpValid(numContours, true);
+//
+//	//Get number of tarp vertices
+//	vector< tuple<unsigned int, unsigned int> > tarpVertices = findTarpVertices(tarpContours, tarpValid);
+//
+//	//Get tarp areas
+//	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours, tarpValid);
+//
+//	//Get tarp means & stddevs //TODO: Change from mean to delta from ideal
+//	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanSTDs = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
+//
+//	/*----- Sort &  make decision -----*/
+//
+//	vector<Point> bestTarp(0); //Default empty contour
+//
+//	sort(tarpAreas.begin(), tarpAreas.end(), sortAreas);
+//	sort(tarpVertices.begin(), tarpVertices.end(), sortVertices);
+//
+//	//Base Case 0
+//	if (numContours == 0)
+//		return bestTarp; //Return empty vector of points
+//
+//
+////	for(unsigned int i = 0; i < tarpAreas.size(); i++)
+////	{
+////		cout << get<0>(tarpAreas[i]) << "," << get<1>(tarpAreas[i]) << endl;
+////		cout << tarpValid[i] << endl;
+////	}
+//
+//
+//	//Find largest valid area. tarpAreas sorted largest to smallest, with indexes
+//	//Corresponding to tarpValid, tarpContours
+//	for(unsigned int i = 0; i < numContours; i++)
+//	{
+//		if(tarpValid[ get<1>(tarpAreas[i]) ] == true)
+//		{
+//			bestTarp = tarpContours[ get<1>(tarpAreas[i]) ];
+//			break;
+//		}
+//	}
+//
+//	//draw contours
+////	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
+//
+//	//Draw contours on image.
+////		for(unsigned int i = 0; i< tarpContours.size(); i++ )
+////		{
+////			Scalar color = Scalar(255,255,255);
+////			if(tarpContours[i].size() > 0){
+////				drawContours( drawmat, tarpContours, i, color, 1, 8);
+////			}
+////			else
+////			{
+////				cout << "No valid tarp" << endl;
+////			}
+////		}
+//
+//		//imshow("Final Image", drawmat);
+//		//waitKey(0); //Wait for any key press before closing window
+//
+//	//TODO: Scale bestTarp to fit large output image (if desired)
+//
+//	return bestTarp;
+//}
+
+void Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp)
 {
 
 
@@ -178,14 +254,14 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgH
 
 	/*----- Sort &  make decision -----*/
 
-	vector<Point> bestTarp(0); //Default empty contour
+	vector<Point> tarp(0); //Default empty contour
 
 	sort(tarpAreas.begin(), tarpAreas.end(), sortAreas);
 	sort(tarpVertices.begin(), tarpVertices.end(), sortVertices);
 
 	//Base Case 0
 	if (numContours == 0)
-		return bestTarp; //Return empty vector of points
+		bestTarp = tarp; //Return empty vector of points
 
 
 //	for(unsigned int i = 0; i < tarpAreas.size(); i++)
@@ -227,6 +303,7 @@ vector<Point> Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgH
 
 	//TODO: Scale bestTarp to fit large output image (if desired)
 
-	return bestTarp;
+	//bestTarp = tarp;
+	//sleep(2);
+	return;
 }
-
