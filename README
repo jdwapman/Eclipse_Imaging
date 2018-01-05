@@ -1,0 +1,18 @@
+UC Davis Eclipse Rocketry
+
+Target Detection
+Jonathan Wapman
+
+Dependencies:
+1) OpenCV 3.3.1 build with CUDA support
+2) CUDA-Enabled GPU
+3) Boost C++ library (for batch file processing)
+
+Usage:
+Git does not track empty folders. To use this program in developement, the user must create an Input_Images and an Output_Images folder. Images to process should be placed in the Input_Images folder. Within this folder, images can be organized into subfolders.
+
+Processed images will be saved to the Output_Images folder.
+
+For faster processing of selected images, create a "Selected_Images" folder and place only a few desired images.
+
+Look at the source code for detailed path information.
