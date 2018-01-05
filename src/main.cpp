@@ -66,7 +66,8 @@ int main(int argc, char** argv )
 
 
 	/*----- SET UP FOLDER -----*/
-	path p("/home/jwapman/Eclipse_Workspace/Target_Detection/Input_Images");
+	path p("/home/jwapman/Eclipse_Workspace/Target_Detection/Input_Images"); //Can select smaller folder
+	//path p("/home/jwapman/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images"); //Can select smaller folder
 	recursive_directory_iterator end_itr;
 
     /*----- PROCESS ALL IMAGES IN FOLDER -----*/
