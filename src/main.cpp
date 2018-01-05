@@ -56,8 +56,6 @@ int main(int argc, char** argv )
 	cuda::setDevice(0);
 	cuda::resetDevice();
 
-
-
 	//Create Tarp Objects
 	Tarp blue("Blue", blue_ideal, blue_low, blue_high);
 	Tarp pink("Pink", pink_ideal, pink_low, pink_high);
