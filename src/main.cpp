@@ -70,8 +70,8 @@ int main(int argc, char** argv )
 
 
 	/*----- SET UP FOLDER -----*/
-	//path p("~/Eclipse_Workspace/Target_Detection/Input_Images"); //Can select smaller folder
-	path p("~/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images"); //Can select smaller folder
+	//path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 	recursive_directory_iterator end_itr;
 
     /*----- PROCESS ALL IMAGES IN FOLDER -----*/
