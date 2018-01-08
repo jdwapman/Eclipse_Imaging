@@ -34,15 +34,15 @@ int main(int argc, char** argv )
 	// Ranges of colors to look for in HSV color space
 	//TODO Get more precise values
 	int blue_ideal[3] = {0,0,0};
-	int blue_low[3] = {200,65,50};
+	int blue_low[3] = {200,65,40};
 	int blue_high[3] = {240,100,100};
 
 	int pink_ideal[3] = {0,0,0};
-	int pink_low[3] = {300,20,70};
+	int pink_low[3] = {300,20,50};
 	int pink_high[3] = {340,60,100};
 
 	int yellow_ideal[3] = {0,0,0};
-	int yellow_low[3] = {45,50,50};
+	int yellow_low[3] = {45,30,50};
 	int yellow_high[3] = {60,100,100};
 
 
@@ -70,9 +70,11 @@ int main(int argc, char** argv )
 
 
 	/*----- SET UP FOLDER -----*/
-	//path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/1-6"));
+	//path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 	recursive_directory_iterator end_itr;
+
+	vector<thread> images;
 
     /*----- PROCESS ALL IMAGES IN FOLDER -----*/
     for (recursive_directory_iterator itr(p); itr != end_itr; ++itr)
@@ -170,16 +172,9 @@ int main(int argc, char** argv )
 		//Blur image (Must use CPU for a 3-channel image)
 		boxFilter(imgHSV,imgHSV,-1,Size(5,5));
 		gpuImgHSV.upload(imgHSV);
-//		Ptr<cuda::Filter> f = cuda::createGaussianFilter(CV_8UC3, CV_8UC3, Size(5,5),20,20);
-//		f->apply(gpuImgHSV, gpuImgHSV);
-//		imgHSV(gpuImgHSV);
+
 
 		printTime("Blur", stepTime);
-
-//		auto findBlue = async(&Tarp::findBestTarp, &blue, ref(gpuImgHSV), ref(splitImgHSV));
-//		auto findPink = async(&Tarp::findBestTarp, &pink, ref(gpuImgHSV), ref(splitImgHSV));
-//		auto findYellow = async(&Tarp::findBestTarp, &yellow, ref(gpuImgHSV), ref(splitImgHSV));
-
 
 
 		/*----- PER-TARP OPERATIONS -----*/
@@ -188,40 +183,48 @@ int main(int argc, char** argv )
 
 		vector<vector<Point> > finalContours(3);
 
+//		thread findBlue(&Tarp::findBestTarp,&blue, ref(imgHSV), ref(splitImgHSV),ref(finalContours[0]));
+//		thread findPink(&Tarp::findBestTarp,&pink, ref(imgHSV), ref(splitImgHSV),ref(finalContours[1]));
+//		thread findYellow(&Tarp::findBestTarp,&yellow, ref(imgHSV), ref(splitImgHSV),ref(finalContours[2]));
+//		findBlue.join();
+//		findPink.join();
+//		findYellow.join();
 
-
-		thread findBlue(&Tarp::findBestTarp,&blue, ref(imgHSV), ref(splitImgHSV),ref(finalContours[0]));
-		thread findPink(&Tarp::findBestTarp,&pink, ref(imgHSV), ref(splitImgHSV),ref(finalContours[1]));
-		thread findYellow(&Tarp::findBestTarp,&yellow, ref(imgHSV), ref(splitImgHSV),ref(finalContours[2]));
-		findBlue.join();
-		findPink.join();
-		findYellow.join();
-//		findBlue.wait();
-//		findPink.wait();
-//		findYellow.wait();
 
 		auto stop = chrono::high_resolution_clock::now();
 
 		cout << "Thread time: " << chrono::duration_cast<chrono::milliseconds>(stop-start).count() << " ms" << endl;
 
-//		finalContours[0] = findBlue.get();
-//		finalContours[1] = findPink.get();
-//		finalContours[2] = findYellow.get();
 
-//		finalContours[0] = blue.findBestTarp(gpuImgHSV, splitImgHSV);
-		//finalContours[1] = pink.findBestTarp(gpuImgHSV, splitImgHSV);
-		//finalContours[2] = yellow.findBestTarp(gpuImgHSV, splitImgHSV);
+
+		blue.findBestTarp(imgHSV, splitImgHSV, finalContours[0]);
+		pink.findBestTarp(imgHSV, splitImgHSV, finalContours[1]);
+		yellow.findBestTarp(imgHSV, splitImgHSV, finalContours[2]);
 
 		printTime("Decision", stepTime);
 
 		/*----- DISPLAY RESULTS -----*/
 
+		vector<vector<Point> > contours_poly( finalContours.size() );
+		vector<Rect> boundRect( finalContours.size() );
+		vector<Point2f>center( finalContours.size() );
+		vector<float>radius( finalContours.size() );
+
+		for(unsigned int i = 0; i < finalContours.size(); i++ )
+		 {
+			if(finalContours[i].size() > 0){
+				boundRect[i] = boundingRect( Mat(finalContours[i]) );
+			}
+		 }
+
+
 		//Draw contours on image.
-		Scalar color[3] = {Scalar(0,0,255),Scalar(255,0,0),Scalar(0,255,0)};
+		const Scalar color[3] = {Scalar(0,0,255),Scalar(255,0,0),Scalar(0,255,0)};
 		for(unsigned int i = 0; i< finalContours.size(); i++ )
 		{
 			if(finalContours[i].size() > 0){
-				drawContours( cameraImgBGRSmall, finalContours, i, color[i], 3, 8);
+				//drawContours( cameraImgBGRSmall, boundRect, i, color[i], 3, 8);
+				rectangle( cameraImgBGRSmall, boundRect[i].tl(), boundRect[i].br(), color[i], 2, 8, 0 );
 			}
 			else
 			{
@@ -241,8 +244,10 @@ int main(int argc, char** argv )
 		//can result in GPU memory errors
 
 		//Save image file
-		thread saveFinalImg(saveImage, ref(cameraImgBGRSmall), currentFilePath);
-		saveFinalImg.detach();
+		saveImage(cameraImgBGRSmall, currentFilePath);
+		//saveFinalImg(saveImage, ref(cameraImgBGRSmall), currentFilePath);
+		//images.push_back(move(saveFinalImg));
+		//saveFinalImg.detach();
 
 		printTime("Save Image", stepTime);
 
@@ -253,6 +258,13 @@ int main(int argc, char** argv )
     }
 
     /*----- EXIT PROGRAM -----*/
+
+    for(unsigned int i = 0; i < images.size(); i++)
+    {
+    	images[i].join();
+    	//cout << i << " Joined" << endl;
+    }
+
 	cuda::resetDevice();
 
     return 0;
@@ -271,6 +283,7 @@ void saveImage(Mat& img, string path)
 	writePath.replace(index,5,"Output"); //Replace "Input" with "Output
 	cout << writePath << endl;
 	imwrite(writePath,img);
+
 }
 
 

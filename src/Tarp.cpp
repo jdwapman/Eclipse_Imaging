@@ -58,13 +58,17 @@ vector<vector<Point> > Tarp::findTarpContours(Mat imgHSV)
 	Mat cpuThresh;
 
 
-	Scalar low(100,50,50);
-	Scalar high(130,100,100);
+	Scalar low = {this->hsv_low[0], this->hsv_low[1], this->hsv_low[2]};
+	Scalar high = {this->hsv_high[0], this->hsv_high[1], this->hsv_high[2]};
 	TickMeter tm;
 	tm.start();
 	inRange(imgHSV, low, high, cpuThresh);
 	tm.stop();
 	cout << "CPU Thresh" << ": "  << tm.getTimeMilli() << " ms" << endl;
+
+
+//	imshow("Thresh Image", cpuThresh);
+//	waitKey(0); //Wait for any key press before closing window
 
 	//TODO: try replacing with cpu inrange
 
@@ -151,10 +155,10 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 
 			tarpVertices[i] = make_tuple(size, i);
 
-			if(size > 10)
-			{
-				tarpValid[i] = false;
-			}
+//			if(size > 10)
+//			{
+//				tarpValid[i] = false;
+//			}
 		}
 	}
 
@@ -162,81 +166,6 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 }
 
 
-//vector<Point> Tarp::findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV)
-//{
-//
-//
-//	//Get tarp contours
-//	vector<vector<Point> > tarpContours = findTarpContours(gpuImgHSV);
-//
-//
-//	unsigned int numContours = tarpContours.size();
-//
-//	//Store whether a tarp is valid
-//	vector<bool> tarpValid(numContours, true);
-//
-//	//Get number of tarp vertices
-//	vector< tuple<unsigned int, unsigned int> > tarpVertices = findTarpVertices(tarpContours, tarpValid);
-//
-//	//Get tarp areas
-//	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours, tarpValid);
-//
-//	//Get tarp means & stddevs //TODO: Change from mean to delta from ideal
-//	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanSTDs = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
-//
-//	/*----- Sort &  make decision -----*/
-//
-//	vector<Point> bestTarp(0); //Default empty contour
-//
-//	sort(tarpAreas.begin(), tarpAreas.end(), sortAreas);
-//	sort(tarpVertices.begin(), tarpVertices.end(), sortVertices);
-//
-//	//Base Case 0
-//	if (numContours == 0)
-//		return bestTarp; //Return empty vector of points
-//
-//
-////	for(unsigned int i = 0; i < tarpAreas.size(); i++)
-////	{
-////		cout << get<0>(tarpAreas[i]) << "," << get<1>(tarpAreas[i]) << endl;
-////		cout << tarpValid[i] << endl;
-////	}
-//
-//
-//	//Find largest valid area. tarpAreas sorted largest to smallest, with indexes
-//	//Corresponding to tarpValid, tarpContours
-//	for(unsigned int i = 0; i < numContours; i++)
-//	{
-//		if(tarpValid[ get<1>(tarpAreas[i]) ] == true)
-//		{
-//			bestTarp = tarpContours[ get<1>(tarpAreas[i]) ];
-//			break;
-//		}
-//	}
-//
-//	//draw contours
-////	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
-//
-//	//Draw contours on image.
-////		for(unsigned int i = 0; i< tarpContours.size(); i++ )
-////		{
-////			Scalar color = Scalar(255,255,255);
-////			if(tarpContours[i].size() > 0){
-////				drawContours( drawmat, tarpContours, i, color, 1, 8);
-////			}
-////			else
-////			{
-////				cout << "No valid tarp" << endl;
-////			}
-////		}
-//
-//		//imshow("Final Image", drawmat);
-//		//waitKey(0); //Wait for any key press before closing window
-//
-//	//TODO: Scale bestTarp to fit large output image (if desired)
-//
-//	return bestTarp;
-//}
 
 void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp)
 {
