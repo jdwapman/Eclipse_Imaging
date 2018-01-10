@@ -1,3 +1,6 @@
-
 Output_Images/*
 Input_Images/*
+Debug/src/*.o
+Debug/Target_Detection
+Release/Target_Detection
+Release/src/*.o
