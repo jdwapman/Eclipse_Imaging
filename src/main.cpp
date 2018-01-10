@@ -42,7 +42,7 @@ int main(int argc, char** argv )
 	int pink_high[3] = {340,60,100};
 
 	int yellow_ideal[3] = {0,0,0};
-	int yellow_low[3] = {45,30,50};
+	int yellow_low[3] = {45,20,50};
 	int yellow_high[3] = {60,100,100};
 
 
@@ -70,8 +70,8 @@ int main(int argc, char** argv )
 
 
 	/*----- SET UP FOLDER -----*/
-	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/1-6"));
-	//path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+	//path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 	recursive_directory_iterator end_itr;
 
 	vector<thread> images;
@@ -179,10 +179,10 @@ int main(int argc, char** argv )
 
 		/*----- PER-TARP OPERATIONS -----*/
 
-		auto start = chrono::high_resolution_clock::now();
 
 		vector<vector<Point> > finalContours(3);
 
+		//Threading option
 //		thread findBlue(&Tarp::findBestTarp,&blue, ref(imgHSV), ref(splitImgHSV),ref(finalContours[0]));
 //		thread findPink(&Tarp::findBestTarp,&pink, ref(imgHSV), ref(splitImgHSV),ref(finalContours[1]));
 //		thread findYellow(&Tarp::findBestTarp,&yellow, ref(imgHSV), ref(splitImgHSV),ref(finalContours[2]));
@@ -190,13 +190,7 @@ int main(int argc, char** argv )
 //		findPink.join();
 //		findYellow.join();
 
-
-		auto stop = chrono::high_resolution_clock::now();
-
-		cout << "Thread time: " << chrono::duration_cast<chrono::milliseconds>(stop-start).count() << " ms" << endl;
-
-
-
+		//Sequential option
 		blue.findBestTarp(imgHSV, splitImgHSV, finalContours[0]);
 		pink.findBestTarp(imgHSV, splitImgHSV, finalContours[1]);
 		yellow.findBestTarp(imgHSV, splitImgHSV, finalContours[2]);
@@ -223,8 +217,8 @@ int main(int argc, char** argv )
 		for(unsigned int i = 0; i< finalContours.size(); i++ )
 		{
 			if(finalContours[i].size() > 0){
-				//drawContours( cameraImgBGRSmall, boundRect, i, color[i], 3, 8);
-				rectangle( cameraImgBGRSmall, boundRect[i].tl(), boundRect[i].br(), color[i], 2, 8, 0 );
+				drawContours( cameraImgBGRSmall, finalContours, i, color[i], 3, 8);
+				//rectangle( cameraImgBGRSmall, boundRect[i].tl(), boundRect[i].br(), color[i], 2, 8, 0 );
 			}
 			else
 			{
@@ -245,9 +239,6 @@ int main(int argc, char** argv )
 
 		//Save image file
 		saveImage(cameraImgBGRSmall, currentFilePath);
-		//saveFinalImg(saveImage, ref(cameraImgBGRSmall), currentFilePath);
-		//images.push_back(move(saveFinalImg));
-		//saveFinalImg.detach();
 
 		printTime("Save Image", stepTime);
 

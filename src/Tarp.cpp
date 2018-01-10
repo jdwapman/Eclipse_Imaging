@@ -58,13 +58,13 @@ vector<vector<Point> > Tarp::findTarpContours(Mat imgHSV)
 	Mat cpuThresh;
 
 
-	Scalar low = {this->hsv_low[0], this->hsv_low[1], this->hsv_low[2]};
-	Scalar high = {this->hsv_high[0], this->hsv_high[1], this->hsv_high[2]};
+	Scalar low = {(double)this->hsv_low[0], (double)this->hsv_low[1], (double)this->hsv_low[2]};
+	Scalar high = {(double)this->hsv_high[0], (double)this->hsv_high[1], (double)this->hsv_high[2]};
 	TickMeter tm;
 	tm.start();
 	inRange(imgHSV, low, high, cpuThresh);
 	tm.stop();
-	cout << "CPU Thresh" << ": "  << tm.getTimeMilli() << " ms" << endl;
+	//cout << "CPU Thresh" << ": "  << tm.getTimeMilli() << " ms" << endl;
 
 
 //	imshow("Thresh Image", cpuThresh);
@@ -84,7 +84,7 @@ vector<vector<Point> > Tarp::findTarpContours(Mat imgHSV)
 	//Additionally, this creates closed loops of all contours. (Needed to find center/average color)
 	for( size_t k = 0; k < contours.size(); k++ )
 	{
-		approxPolyDP(Mat(contours[k]), contours_approx[k], 0.01*arcLength(contours[k],true), true);
+		approxPolyDP(Mat(contours[k]), contours_approx[k], 0.05*arcLength(contours[k],true), true);
 	}
 
 	return contours_approx; //Save possible contours
@@ -115,6 +115,70 @@ vector< tuple<Scalar, Scalar, unsigned int> > Tarp::findTarpMeans(vector<vector<
 	return tarpMeans;
 }
 
+//Get histogram of each contour location to find dominant color
+vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > tarpContours, vector<Mat> splitImgHSV, vector<bool>& tarpValid)
+{
+	vector< tuple<double, unsigned int> > tarpDominantColor(tarpContours.size());
+
+	for(unsigned int i = 0; i < tarpContours.size(); i++)
+	{
+		if(tarpValid[i] == true)
+		{
+			//Get mask
+			Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
+
+			drawContours(mask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
+
+			//Histogram variables
+			int histSize = 180;
+			float range[] = {0, 180};
+			const float* histRange = { range };
+			bool uniform = true;
+			bool accumulate = false;
+			Mat hist;
+
+			calcHist(&splitImgHSV[0], 1, 0, mask, hist, 1, &histSize, &histRange, uniform, accumulate);
+
+			// Draw the histograms for B, G and R
+			int hist_w = 512; int hist_h = 400;
+			int bin_w = cvRound( (double) hist_w/histSize );
+
+			Mat histImage( hist_h, hist_w, CV_8UC3, Scalar( 0,0,0) );
+
+			/// Normalize the result to [ 0, histImage.rows ]
+			normalize(hist, hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+
+
+//			/// Draw for each channel
+//			for( int i = 1; i < histSize; i++ )
+//			{
+//			  line( histImage, Point( bin_w*(i-1), hist_h - cvRound(hist.at<float>(i-1)) ) ,
+//							   Point( bin_w*(i), hist_h - cvRound(hist.at<float>(i)) ),
+//							   Scalar( 180, 0, 0), 2, 8, 0  );
+//
+//			}
+//
+//			/// Display
+//			namedWindow("calcHist Demo", CV_WINDOW_AUTOSIZE );
+//
+//			imshow("calcHist Demo", histImage );
+//
+//			waitKey(0);
+
+			//Get max location
+			double min, max;
+			Point minLoc, maxLoc;
+			minMaxLoc(hist, &min, &max, &minLoc, &maxLoc);
+
+			//cout << "maxLocY: " << maxLoc.y  << endl; //Dominant frequency of the contour
+
+			tarpDominantColor[i] = make_tuple(maxLoc.y, i); //Gets average value of the points inside the mask
+		}
+	}
+
+	return tarpDominantColor;
+}
+
 //Find the area of each tarp contour. Return <area, index>
 vector< tuple<double, unsigned int> > Tarp::findTarpAreas(vector<vector<Point> > tarpContours, vector<bool>& tarpValid)
 {
@@ -124,17 +188,16 @@ vector< tuple<double, unsigned int> > Tarp::findTarpAreas(vector<vector<Point> >
 
 	for(unsigned int i = 0; i < tarpAreas.size(); i++)
 	{
-		if(tarpValid[i] == true)
+
+		area = contourArea(tarpContours[i]);
+
+		tarpAreas[i] = make_tuple(area, i);
+
+		if(area < 50)
 		{
-			area = contourArea(tarpContours[i]);
-
-			tarpAreas[i] = make_tuple(area, i);
-
-			if(area < 10)
-			{
-				tarpValid[i] = false;
-			}
+			tarpValid[i] = false;
 		}
+
 	}
 
 	return tarpAreas;
@@ -149,17 +212,16 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 
 	for(unsigned int i = 0; i < tarpContours.size(); i++)
 	{
-		if(tarpValid[i] == true)
+
+		size = tarpContours[i].size();
+
+		tarpVertices[i] = make_tuple(size, i);
+
+		if(size > 6)
 		{
-			size = tarpContours[i].size();
-
-			tarpVertices[i] = make_tuple(size, i);
-
-//			if(size > 10)
-//			{
-//				tarpValid[i] = false;
-//			}
+			tarpValid[i] = false;
 		}
+
 	}
 
 	return tarpVertices;
@@ -186,8 +248,27 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	//Get tarp areas
 	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours, tarpValid);
 
-	//Get tarp means & stddevs //TODO: Change from mean to delta from ideal
+
+
+	//Get tarp means & stddevs
 	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanSTDs = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
+
+	//Get tarp histogram
+	vector< tuple<double, unsigned int> > tarpDominantColor = findTarpHist(tarpContours, splitImgHSV, tarpValid);
+
+
+	vector<bool> tarpConvexity(numContours, false);
+
+	//Get tarp convexity
+	for (unsigned int i = 0; i < numContours; i++)
+	{
+		if(tarpValid[i])
+			tarpValid[i] = isContourConvex(tarpContours[i]);
+
+
+		tarpConvexity[i] = isContourConvex(tarpContours[i]);
+		//cout << isContourConvex(tarpContours[i]) << endl;
+	}
 
 	/*----- Sort &  make decision -----*/
 
@@ -200,13 +281,7 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	if (numContours == 0)
 		bestTarp = tarp; //Return empty vector of points
 
-
-//	for(unsigned int i = 0; i < tarpAreas.size(); i++)
-//	{
-//		cout << get<0>(tarpAreas[i]) << "," << get<1>(tarpAreas[i]) << endl;
-//		cout << tarpValid[i] << endl;
-//	}
-
+	bestTarp = tarp;
 
 	//Find largest valid area. tarpAreas sorted largest to smallest, with indexes
 	//Corresponding to tarpValid, tarpContours
@@ -215,30 +290,43 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 		if(tarpValid[ get<1>(tarpAreas[i]) ] == true)
 		{
 			bestTarp = tarpContours[ get<1>(tarpAreas[i]) ];
+
+			//Write information
+			cout << "Area: " << get<0>(tarpAreas[i]) << endl;
+			cout << "Vertices: " << get<0>(tarpVertices[i]) << endl;
+			cout << "Convex: " << tarpConvexity[get<1>(tarpAreas[i])] << endl;
+			//cout << "STDDEV: " << (get<1>(tarpMeanSTDs[get<1>(tarpAreas[i])]))[0] << endl; //gets the stdev in pos 1
+			cout << "Dominant Color: " << (get<0>(tarpDominantColor[get<1>(tarpAreas[i])])) << endl;
+			cout << endl;
+
+
 			break;
 		}
 	}
 
+
+
+
 	//draw contours
-//	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
+	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
 
 	//Draw contours on image.
-//		for(unsigned int i = 0; i< tarpContours.size(); i++ )
-//		{
-//			Scalar color = Scalar(255,255,255);
-//			if(tarpContours[i].size() > 0){
-//				drawContours( drawmat, tarpContours, i, color, 1, 8);
-//			}
-//			else
-//			{
-//				cout << "No valid tarp" << endl;
-//			}
-//		}
+		for(unsigned int i = 0; i< tarpContours.size(); i++ )
+		{
+			Scalar color = Scalar(255,255,255);
+			if(tarpContours[i].size() > 0){
+				drawContours( drawmat, tarpContours, i, color, 1, 8);
+			}
+			else
+			{
+				cout << "No valid tarp" << endl;
+			}
+		}
 
-		//imshow("Final Image", drawmat);
-		//waitKey(0); //Wait for any key press before closing window
+//		imshow("Final Image", drawmat);
+//		waitKey(0); //Wait for any key press before closing window
 
-	//TODO: Scale bestTarp to fit large output image (if desired)
+	//: Scale bestTarp to fit large output image (if desired)
 
 	//bestTarp = tarp;
 	//sleep(2);
