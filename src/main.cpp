@@ -23,7 +23,7 @@ using namespace boost::filesystem;
 //Forware-declare functions
 Mat getImage();
 void printTime(String operation, TickMeter& tm);
-void saveImage(Mat& img, string path);
+void saveImage(const Mat& img, const string path);
 
 
 int main(int argc, char** argv )
@@ -44,7 +44,6 @@ int main(int argc, char** argv )
 	int yellow_ideal[3] = {0,0,0};
 	int yellow_low[3] = {45,20,50};
 	int yellow_high[3] = {60,100,100};
-
 
 
 	/*----- INITIALIZATION -----*/
@@ -179,21 +178,20 @@ int main(int argc, char** argv )
 
 		/*----- PER-TARP OPERATIONS -----*/
 
-
 		vector<vector<Point> > finalContours(3);
 
 		//Threading option
-//		thread findBlue(&Tarp::findBestTarp,&blue, ref(imgHSV), ref(splitImgHSV),ref(finalContours[0]));
-//		thread findPink(&Tarp::findBestTarp,&pink, ref(imgHSV), ref(splitImgHSV),ref(finalContours[1]));
-//		thread findYellow(&Tarp::findBestTarp,&yellow, ref(imgHSV), ref(splitImgHSV),ref(finalContours[2]));
-//		findBlue.join();
-//		findPink.join();
-//		findYellow.join();
+		thread findBlue(&Tarp::findBestTarp,&blue, ref(imgHSV), ref(splitImgHSV),ref(finalContours[0]));
+		thread findPink(&Tarp::findBestTarp,&pink, ref(imgHSV), ref(splitImgHSV),ref(finalContours[1]));
+		thread findYellow(&Tarp::findBestTarp,&yellow, ref(imgHSV), ref(splitImgHSV),ref(finalContours[2]));
+		findBlue.join();
+		findPink.join();
+		findYellow.join();
 
 		//Sequential option
-		blue.findBestTarp(imgHSV, splitImgHSV, finalContours[0]);
-		pink.findBestTarp(imgHSV, splitImgHSV, finalContours[1]);
-		yellow.findBestTarp(imgHSV, splitImgHSV, finalContours[2]);
+//		blue.findBestTarp(imgHSV, splitImgHSV, finalContours[0]);
+//		pink.findBestTarp(imgHSV, splitImgHSV, finalContours[1]);
+//		yellow.findBestTarp(imgHSV, splitImgHSV, finalContours[2]);
 
 		printTime("Decision", stepTime);
 
