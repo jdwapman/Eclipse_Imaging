@@ -122,8 +122,8 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 
 	for(unsigned int i = 0; i < tarpContours.size(); i++)
 	{
-		//if(tarpValid[i] == true)
-		//{
+		if(tarpValid[i] == true)
+		{
 			//Get mask
 			Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
 
@@ -142,7 +142,7 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 
 
 			// Draw the histograms for B, G and R
-			int hist_w = 100; int hist_h = 100;
+			int hist_w = 800; int hist_h = 800;
 			int bin_w = cvRound( (double) hist_w/histSize );
 
 			Mat histImage( hist_h, hist_w, CV_8UC3, Scalar( 0,0,0) );
@@ -158,10 +158,6 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 			  line( histImage, Point( bin_w*(i-1), hist_h - cvRound(hist.at<float>(i-1)) ) ,
 							   Point( bin_w*(i), hist_h - cvRound(hist.at<float>(i)) ),
 							   Scalar( 180, 0, 0), 1, 8, 0  );
-
-
-
-
 			}
 
 			//Get max location
@@ -183,7 +179,12 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 			  }
 			}
 
-			//cout << "Peaks: " << numPeaks << endl;
+			if(numPeaks > 1)
+			{
+				tarpValid[i] = false;
+			}
+
+			cout << "Peaks: " << i << ": " << numPeaks << endl;
 
 			/// Display
 //			namedWindow("calcHist Demo", CV_WINDOW_AUTOSIZE );
@@ -195,7 +196,7 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 
 
 			tarpDominantColor[i] = make_tuple(maxLoc.y, i); //Gets average value of the points inside the mask
-		//}
+		}
 	}
 
 	return tarpDominantColor;
@@ -215,7 +216,7 @@ vector< tuple<double, unsigned int> > Tarp::findTarpAreas(vector<vector<Point> >
 
 		tarpAreas[i] = make_tuple(area, i);
 
-		if(area < 50)
+		if(area < 200)
 		{
 			tarpValid[i] = false;
 		}

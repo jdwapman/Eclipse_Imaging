@@ -70,8 +70,8 @@ int main(int argc, char** argv )
 
 
 	/*----- SET UP FOLDER -----*/
-	//path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
+//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 	recursive_directory_iterator end_itr;
 
 	vector<thread> images;
@@ -266,7 +266,7 @@ int main(int argc, char** argv )
 
 //Function to import an image. Currently only reads files from filesystem.
 //In the future, expand to include code for accessing the camera
-void saveImage(Mat& img, string path)
+void saveImage(const Mat& img, const string path)
 {
 	size_t index = 0;
 	string writePath = path;
