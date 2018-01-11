@@ -34,6 +34,7 @@ class Tarp {
 	vector< tuple<unsigned int, unsigned int> > findTarpVertices(vector<vector<Point> > tarpContours, vector<bool>& tarpValid);
 	vector< tuple<double, unsigned int> > findTarpHist(vector<vector<Point> > tarpContours, vector<Mat> splitImgHSV, vector<bool>& tarpValid);
 
+
 public:
 	Tarp(string color, int* ideal, int* low, int* high);
 	virtual ~Tarp();
@@ -41,6 +42,7 @@ public:
 	//Find most likely tarp
 	//vector<Point> findBestTarp(cuda::GpuMat& gpuImgHSV, vector<Mat>& splitImgHSV);
 	void findBestTarp(Mat& gpuImgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp);
+	vector<Point> findBestTarpORB(Mat& imgHSV);
 };
 
 

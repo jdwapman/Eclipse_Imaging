@@ -195,6 +195,8 @@ int main(int argc, char** argv )
 		pink.findBestTarp(imgHSV, splitImgHSV, finalContours[1]);
 		yellow.findBestTarp(imgHSV, splitImgHSV, finalContours[2]);
 
+		pink.findBestTarpORB(imgHSV);
+
 		printTime("Decision", stepTime);
 
 		/*----- DISPLAY RESULTS -----*/
