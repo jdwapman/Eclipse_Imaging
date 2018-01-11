@@ -122,15 +122,15 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 
 	for(unsigned int i = 0; i < tarpContours.size(); i++)
 	{
-		if(tarpValid[i] == true)
-		{
+		//if(tarpValid[i] == true)
+		//{
 			//Get mask
 			Mat mask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
 
 			drawContours(mask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
 
 			//Histogram variables
-			int histSize = 180;
+			int histSize = 90;
 			float range[] = {0, 180};
 			const float* histRange = { range };
 			bool uniform = true;
@@ -139,8 +139,10 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 
 			calcHist(&splitImgHSV[0], 1, 0, mask, hist, 1, &histSize, &histRange, uniform, accumulate);
 
+
+
 			// Draw the histograms for B, G and R
-			int hist_w = 512; int hist_h = 400;
+			int hist_w = 100; int hist_h = 100;
 			int bin_w = cvRound( (double) hist_w/histSize );
 
 			Mat histImage( hist_h, hist_w, CV_8UC3, Scalar( 0,0,0) );
@@ -148,22 +150,19 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 			/// Normalize the result to [ 0, histImage.rows ]
 			normalize(hist, hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
 
+			int numPeaks = 0;
 
 			/// Draw for each channel
-//			for( int i = 1; i < histSize; i++ )
-//			{
-//			  line( histImage, Point( bin_w*(i-1), hist_h - cvRound(hist.at<float>(i-1)) ) ,
-//							   Point( bin_w*(i), hist_h - cvRound(hist.at<float>(i)) ),
-//							   Scalar( 180, 0, 0), 2, 8, 0  );
-//
-//			}
-//
-//			/// Display
-//			namedWindow("calcHist Demo", CV_WINDOW_AUTOSIZE );
-//
-//			imshow("calcHist Demo", histImage );
-//
-//			waitKey(0);
+			for( int i = 1; i < histSize; i++ )
+			{
+			  line( histImage, Point( bin_w*(i-1), hist_h - cvRound(hist.at<float>(i-1)) ) ,
+							   Point( bin_w*(i), hist_h - cvRound(hist.at<float>(i)) ),
+							   Scalar( 180, 0, 0), 1, 8, 0  );
+
+
+
+
+			}
 
 			//Get max location
 			double min, max;
@@ -172,8 +171,31 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 
 			//cout << "maxLocY: " << maxLoc.y  << endl; //Dominant frequency of the contour
 
+			for(int i = 0; i < histSize; i++)
+			{
+			  //Find peaks
+			  //cout << hist.at<float>(-1) << endl;
+			  if( (hist.at<float>(i-1) < hist.at<float>(i))
+					  && ((hist.at<float>(i) > hist.at<float>(i+1)))
+					  && (hist.at<float>(i) > 0.025*max))
+			  {
+				  numPeaks++;
+			  }
+			}
+
+			//cout << "Peaks: " << numPeaks << endl;
+
+			/// Display
+//			namedWindow("calcHist Demo", CV_WINDOW_AUTOSIZE );
+//
+//			imshow("calcHist Demo", histImage );
+//
+//			waitKey(0);
+
+
+
 			tarpDominantColor[i] = make_tuple(maxLoc.y, i); //Gets average value of the points inside the mask
-		}
+		//}
 	}
 
 	return tarpDominantColor;
@@ -294,6 +316,8 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 
 	unsigned int numContours = tarpContours.size();
 
+	/*----- Get data -----*/
+
 	//Store whether a tarp is valid
 	vector<bool> tarpValid(numContours, true);
 
@@ -303,27 +327,23 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	//Get tarp areas
 	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours, tarpValid);
 
-
-
-	//Get tarp means & stddevs
-	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanSTDs = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
-
 	//Get tarp histogram
 	vector< tuple<double, unsigned int> > tarpDominantColor = findTarpHist(tarpContours, splitImgHSV, tarpValid);
 
-
-	vector<bool> tarpConvexity(numContours, false);
-
 	//Get tarp convexity
+	vector<bool> tarpConvexity(numContours, false);
 	for (unsigned int i = 0; i < numContours; i++)
 	{
 		if(tarpValid[i])
-			tarpValid[i] = isContourConvex(tarpContours[i]);
+			//tarpValid[i] = isContourConvex(tarpContours[i]);
 
 
 		tarpConvexity[i] = isContourConvex(tarpContours[i]);
 		//cout << isContourConvex(tarpContours[i]) << endl;
 	}
+
+
+
 
 	/*----- Sort &  make decision -----*/
 
@@ -350,8 +370,8 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 			cout << "Area: " << get<0>(tarpAreas[i]) << endl;
 			cout << "Vertices: " << get<0>(tarpVertices[i]) << endl;
 			cout << "Convex: " << tarpConvexity[get<1>(tarpAreas[i])] << endl;
-			//cout << "STDDEV: " << (get<1>(tarpMeanSTDs[get<1>(tarpAreas[i])]))[0] << endl; //gets the stdev in pos 1
 			cout << "Dominant Color: " << (get<0>(tarpDominantColor[get<1>(tarpAreas[i])])) << endl;
+			cout << "Index: " << get<1>(tarpAreas[i]);
 			cout << endl;
 
 
