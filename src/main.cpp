@@ -114,7 +114,7 @@ int main(int argc, char** argv )
 		int imgType = cameraImgBGR.type();
 
 		//Reduced image dimensions
-		double scale = (1.0/8.0);
+		double scale = (1.0/4.0);
 		int rrows = rows * scale;
 		int rcols = cols * scale;
 
@@ -137,10 +137,10 @@ int main(int argc, char** argv )
 
 		//Resize with CPU. Faster than resizing using GPU due to memory latency
 
-		resize(cameraImgBGR,cameraImgBGRSmall,Size(),0.25,0.25,INTER_LINEAR);
-		cuda::GpuMat gpuCameraImgBGRSmall(cameraImgBGRSmall);
-		printTime("Resize CPU", stepTime);
+		resize(cameraImgBGR,cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
 
+		printTime("Resize CPU", stepTime);
+		cuda::GpuMat gpuCameraImgBGRSmall(cameraImgBGRSmall);
 //		//Declare GPU matrices to hold converted color space
 //		cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
 //
