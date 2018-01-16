@@ -8,7 +8,7 @@
 #include <iostream> //Input/output library
 #include <vector>
 #include <string>
-#include <algorithm>
+#include <algorithm> //For sorting
 #include <opencv2/opencv.hpp> //OpenCV library
 #include "Tarp.h"
 #include <future>
@@ -34,15 +34,15 @@ int main(int argc, char** argv )
 	// Ranges of colors to look for in HSV color space
 	//TODO Get more precise values
 	int blue_ideal[3] = {0,0,0};
-	int blue_low[3] = {200,65,40};
+	int blue_low[3] = {200,45,40};
 	int blue_high[3] = {240,100,100};
 
 	int pink_ideal[3] = {0,0,0};
-	int pink_low[3] = {300,20,50};
-	int pink_high[3] = {340,60,100};
+	int pink_low[3] = {290,20,50};
+	int pink_high[3] = {350,60,100};
 
 	int yellow_ideal[3] = {0,0,0};
-	int yellow_low[3] = {45,20,50};
+	int yellow_low[3] = {45,20,40};
 	int yellow_high[3] = {60,100,100};
 
 
@@ -69,11 +69,11 @@ int main(int argc, char** argv )
 
 
 	/*----- SET UP FOLDER -----*/
-	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/1-14")); //Can select smaller folder
+
 	recursive_directory_iterator end_itr;
 
-	vector<thread> images;
 
     /*----- PROCESS ALL IMAGES IN FOLDER -----*/
     for (recursive_directory_iterator itr(p); itr != end_itr; ++itr)
@@ -220,7 +220,7 @@ int main(int argc, char** argv )
 			}
 			else
 			{
-				cout << "No valid tarp" << endl;
+//				cout << "No valid tarp" << endl;
 			}
 		}
 
@@ -247,12 +247,6 @@ int main(int argc, char** argv )
     }
 
     /*----- EXIT PROGRAM -----*/
-
-    for(unsigned int i = 0; i < images.size(); i++)
-    {
-    	images[i].join();
-    	//cout << i << " Joined" << endl;
-    }
 
 	cuda::resetDevice();
 

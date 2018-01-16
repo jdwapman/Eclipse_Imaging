@@ -48,7 +48,7 @@ Tarp::~Tarp()
 }
 
 //Identify possible tarp contours for a given HSV image
-vector<vector<Point> > Tarp::findTarpContours(Mat imgHSV)
+vector<vector<Point> > Tarp::findTarpContours(const Mat& imgHSV)
 {
 
 	//Apply thresholding.
@@ -184,7 +184,7 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 				tarpValid[i] = false;
 			}
 
-			cout << "Peaks: " << i << ": " << numPeaks << endl;
+			//cout << "Peaks: " << i << ": " << numPeaks << endl;
 
 			/// Display
 //			namedWindow("calcHist Demo", CV_WINDOW_AUTOSIZE );
@@ -216,7 +216,7 @@ vector< tuple<double, unsigned int> > Tarp::findTarpAreas(vector<vector<Point> >
 
 		tarpAreas[i] = make_tuple(area, i);
 
-		if(area < 200)
+		if(area < 200) //Modify based on height
 		{
 			tarpValid[i] = false;
 		}
@@ -240,7 +240,7 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 
 		tarpVertices[i] = make_tuple(size, i);
 
-		if(size > 6)
+		if((size > 6) || (size <= 3))
 		{
 			tarpValid[i] = false;
 		}
@@ -331,12 +331,15 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	//Get tarp histogram
 	vector< tuple<double, unsigned int> > tarpDominantColor = findTarpHist(tarpContours, splitImgHSV, tarpValid);
 
+	//Get tarp mean, stddev
+	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanStddev = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
+
 	//Get tarp convexity
 	vector<bool> tarpConvexity(numContours, false);
 	for (unsigned int i = 0; i < numContours; i++)
 	{
 		if(tarpValid[i])
-			//tarpValid[i] = isContourConvex(tarpContours[i]);
+			tarpValid[i] = isContourConvex(tarpContours[i]);
 
 
 		tarpConvexity[i] = isContourConvex(tarpContours[i]);
@@ -344,19 +347,19 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	}
 
 
-
-
 	/*----- Sort &  make decision -----*/
 
 	vector<Point> tarp(0); //Default empty contour
 
 	sort(tarpAreas.begin(), tarpAreas.end(), sortAreas);
-	sort(tarpVertices.begin(), tarpVertices.end(), sortVertices);
+//	sort(tarpVertices.begin(), tarpVertices.end(), sortVertices);
+//	sort(ratios.begin(), ratios.end(), sortAreas); //TODO: change function call
 
 	//Base Case 0
 	if (numContours == 0)
 		bestTarp = tarp; //Return empty vector of points
 
+	//Default
 	bestTarp = tarp;
 
 	//Find largest valid area. tarpAreas sorted largest to smallest, with indexes
@@ -366,21 +369,19 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 		if(tarpValid[ get<1>(tarpAreas[i]) ] == true)
 		{
 			bestTarp = tarpContours[ get<1>(tarpAreas[i]) ];
-
-			//Write information
-			cout << "Area: " << get<0>(tarpAreas[i]) << endl;
-			cout << "Vertices: " << get<0>(tarpVertices[i]) << endl;
-			cout << "Convex: " << tarpConvexity[get<1>(tarpAreas[i])] << endl;
-			cout << "Dominant Color: " << (get<0>(tarpDominantColor[get<1>(tarpAreas[i])])) << endl;
-			cout << "Index: " << get<1>(tarpAreas[i]);
-			cout << endl;
+//
+//			//Write information
+//			cout << "Area: " << get<0>(tarpAreas[get<1>(tarpAreas[i])]) << endl;
+//			cout << "Vertices: " << get<0>(tarpVertices[get<1>(tarpAreas[i])]) << endl;
+//			cout << "Convex: " << tarpConvexity[get<1>(tarpAreas[i])] << endl;
+//			cout << "Dominant Color: " << (get<0>(tarpDominantColor[get<1>(tarpAreas[i])])) << endl;
+//			cout << "Index: " << get<1>(tarpAreas[i]);
+//			cout << endl;
 
 
 			break;
 		}
 	}
-
-
 
 
 	//draw contours
@@ -404,7 +405,5 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 
 	//: Scale bestTarp to fit large output image (if desired)
 
-	//bestTarp = tarp;
-	//sleep(2);
 	return;
 }

@@ -29,7 +29,7 @@ class Tarp {
 
 	//Private functions
 	vector< tuple<Scalar, Scalar, unsigned int> > findTarpMeans(vector<vector<Point> > tarpContours, vector<Mat> splitImgHSV, vector<bool>& tarpValid);
-	vector<vector<Point> > findTarpContours(Mat imgHSV);
+	vector<vector<Point> > findTarpContours(const Mat& imgHSV);
 	vector< tuple<double, unsigned int> > findTarpAreas(vector<vector<Point> > tarpContours, vector<bool>& tarpValid);
 	vector< tuple<unsigned int, unsigned int> > findTarpVertices(vector<vector<Point> > tarpContours, vector<bool>& tarpValid);
 	vector< tuple<double, unsigned int> > findTarpHist(vector<vector<Point> > tarpContours, vector<Mat> splitImgHSV, vector<bool>& tarpValid);
