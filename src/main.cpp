@@ -94,7 +94,6 @@ int main(int argc, char** argv )
 			create_directory(outputDirectoryPath);
 
 			continue;
-
 		}
 
 		/*----- READ & CHECK -----*/
@@ -256,8 +255,7 @@ int main(int argc, char** argv )
 
 /*---------- CUSTOM FUNCTIONS ----------*/
 
-//Function to import an image. Currently only reads files from filesystem.
-//In the future, expand to include code for accessing the camera
+
 void saveImage(const Mat& img, const string path)
 {
 	size_t index = 0;
