@@ -5,3 +5,4 @@ Debug/Target_Detection
 Release/Target_Detection
 Release/src/*.o
 /Debug/
+/Release/
