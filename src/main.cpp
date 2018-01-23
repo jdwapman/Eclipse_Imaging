@@ -22,9 +22,12 @@ using namespace boost::filesystem;
 
 //Forware-declare functions
 Mat getImage();
+void getColors(path currentFilePath);
 void printTime(String operation, TickMeter& tm);
 void saveImage(const Mat& img, const string path);
 
+//Global configuration variables. False = read from filesystem;
+const bool readCamera = false;
 
 int main(int argc, char** argv )
 {
@@ -70,7 +73,7 @@ int main(int argc, char** argv )
 
 	/*----- SET UP FOLDER -----*/
 //	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/1-14")); //Can select smaller folder
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 
 	recursive_directory_iterator end_itr;
 
@@ -81,11 +84,15 @@ int main(int argc, char** argv )
     	//Path strings
 		string currentFilePath = itr->path().string();
 		string currentFileName = itr->path().filename().string();
+
+		cout << currentFilePath << endl;
+
 		cout << "Reading " << currentFileName << endl;
 
 		//If directory, make folder and continue
 		if (is_directory(itr->path()))
 		{
+			cout << "Hi" << endl;
 			size_t index = 0;
 			string outputDirectoryPath = currentFilePath;
 			index = outputDirectoryPath.find("Input", index);
@@ -98,8 +105,15 @@ int main(int argc, char** argv )
 
 		/*----- READ & CHECK -----*/
 
+		//If not a jpeg, skip to next file
+		if(currentFileName.find(".jpg") == string::npos)
+			continue;
+
 		//Import image. imread imports in BGR format.
 		Mat cameraImgBGR = imread(currentFilePath, CV_LOAD_IMAGE_COLOR);
+
+		//Import calibration file
+		getColors(itr->path());
 
 		//Start timer
 		TickMeter stepTime;
@@ -255,6 +269,46 @@ int main(int argc, char** argv )
 
 /*---------- CUSTOM FUNCTIONS ----------*/
 
+void getColors(path currentFilePath)
+{
+
+	vector<int> colors;
+
+	string parentPath = currentFilePath.parent_path().string();
+	string calibrationPath = parentPath.append("/colors.txt");
+
+	if(exists(calibrationPath))
+	{
+		ifstream f;
+		f.open(calibrationPath);
+
+		while (f)
+		  {
+		    string s;
+		    if (!getline( f, s )) break;
+
+		    istringstream ss( s );
+
+
+
+		    while (ss)
+		    {
+		      string s;
+		      if (!getline( ss, s, ',' )) break;
+
+		      if(s.at(0) == '#') break;
+
+		      colors.push_back( stoi(s) );
+		    }
+		  }
+	}
+
+	for (unsigned int i = 0; i < colors.size(); i++)
+	{
+		cout << colors[i] << endl;
+	}
+
+}
 
 void saveImage(const Mat& img, const string path)
 {
