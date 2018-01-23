@@ -20,34 +20,35 @@ using namespace std;
 using namespace cv;
 using namespace boost::filesystem;
 
+
+//Structure to store data
+struct color_data{
+	int blue_low[3] = {200,45,40};
+	int blue_high[3] = {240,100,100};
+	int blue_ideal[3] = {0,0,0};
+
+	int pink_low[3] = {290,20,50};
+	int pink_high[3] = {350,60,100};
+	int pink_ideal[3] = {0,0,0};
+
+	int yellow_low[3] = {45,20,40};
+	int yellow_high[3] = {60,100,100};
+	int yellow_ideal[3] = {0,0,0};
+};
+
 //Forware-declare functions
 Mat getImage();
-void getColors(path currentFilePath);
+color_data getColors(path currentFilePath);
 void printTime(String operation, TickMeter& tm);
 void saveImage(const Mat& img, const string path);
 
 //Global configuration variables. False = read from filesystem;
 const bool readCamera = false;
 
+
+
 int main(int argc, char** argv )
 {
-
-	/*----- COLOR VARIABLES -----*/
-
-	// Ranges of colors to look for in HSV color space
-	//TODO Get more precise values
-	int blue_ideal[3] = {0,0,0};
-	int blue_low[3] = {200,45,40};
-	int blue_high[3] = {240,100,100};
-
-	int pink_ideal[3] = {0,0,0};
-	int pink_low[3] = {290,20,50};
-	int pink_high[3] = {350,60,100};
-
-	int yellow_ideal[3] = {0,0,0};
-	int yellow_low[3] = {45,20,40};
-	int yellow_high[3] = {60,100,100};
-
 
 	/*----- INITIALIZATION -----*/
 
@@ -61,13 +62,6 @@ int main(int argc, char** argv )
 	//Initialize GPU
 	cuda::setDevice(0);
 	cuda::resetDevice();
-
-
-
-	//Create Tarp Objects
-	Tarp blue("Blue", blue_ideal, blue_low, blue_high);
-	Tarp pink("Pink", pink_ideal, pink_low, pink_high);
-	Tarp yellow("Yellow", yellow_ideal, yellow_low, yellow_high);
 
 
 
@@ -103,6 +97,9 @@ int main(int argc, char** argv )
 			continue;
 		}
 
+		/*----- CALIBRATE -----*/
+		color_data colors = getColors(itr->path());
+
 		/*----- READ & CHECK -----*/
 
 		//If not a jpeg, skip to next file
@@ -112,8 +109,10 @@ int main(int argc, char** argv )
 		//Import image. imread imports in BGR format.
 		Mat cameraImgBGR = imread(currentFilePath, CV_LOAD_IMAGE_COLOR);
 
-		//Import calibration file
-		getColors(itr->path());
+		//Create Tarp Objects
+		Tarp blue("Blue", colors.blue_ideal, colors.blue_low, colors.blue_high);
+		Tarp pink("Pink", colors.pink_ideal, colors.pink_low, colors.pink_high);
+		Tarp yellow("Yellow", colors.yellow_ideal, colors.yellow_low, colors.yellow_high);
 
 		//Start timer
 		TickMeter stepTime;
@@ -269,16 +268,43 @@ int main(int argc, char** argv )
 
 /*---------- CUSTOM FUNCTIONS ----------*/
 
-void getColors(path currentFilePath)
+color_data getColors(path currentFilePath)
 {
 
-	vector<int> colors;
+	/*
+	 * Usage:
+	 * Image must be in the following format:
+	 *
+	 * #Blue
+	 * lowh,lohs,lowv
+	 * highh,highs,highv
+	 * idealh,ideals,idealv
+	 *
+	 * #Pink
+	 * lowh,lohs,lowv
+	 * highh,highs,highv
+	 * idealh,ideals,idealv
+	 *
+	 * #Yellow
+	 * lowh,lohs,lowv
+	 * highh,highs,highv
+	 * idealh,ideals,idealv
+	 *
+	 *
+	 */
+
+	color_data colors;
+
+	vector<int> v;
 
 	string parentPath = currentFilePath.parent_path().string();
 	string calibrationPath = parentPath.append("/colors.txt");
 
 	if(exists(calibrationPath))
 	{
+
+		cout << calibrationPath << endl;
+
 		ifstream f;
 		f.open(calibrationPath);
 
@@ -289,8 +315,6 @@ void getColors(path currentFilePath)
 
 		    istringstream ss( s );
 
-
-
 		    while (ss)
 		    {
 		      string s;
@@ -298,15 +322,46 @@ void getColors(path currentFilePath)
 
 		      if(s.at(0) == '#') break;
 
-		      colors.push_back( stoi(s) );
+		      v.push_back( stoi(s) );
 		    }
 		  }
+
+		//Save data to struct
+		colors.blue_low[0] = v[0];
+		colors.blue_low[1] = v[1];
+		colors.blue_low[2] = v[2];
+		colors.blue_high[0] = v[3];
+		colors.blue_high[1] = v[4];
+		colors.blue_high[2] = v[5];
+		colors.blue_ideal[0] = v[6];
+		colors.blue_ideal[1] = v[7];
+		colors.blue_ideal[2] = v[8];
+
+		colors.pink_low[0] = v[9];
+		colors.pink_low[1] = v[10];
+		colors.pink_low[2] = v[11];
+		colors.pink_high[0] = v[12];
+		colors.pink_high[1] = v[13];
+		colors.pink_high[2] = v[14];
+		colors.pink_ideal[0] = v[15];
+		colors.pink_ideal[1] = v[16];
+		colors.pink_ideal[2] = v[17];
+
+		colors.yellow_low[0] = v[18];
+		colors.yellow_low[1] = v[19];
+		colors.yellow_low[2] = v[20];
+		colors.yellow_high[0] = v[21];
+		colors.yellow_high[1] = v[22];
+		colors.yellow_high[2] = v[23];
+		colors.yellow_ideal[0] = v[24];
+		colors.yellow_ideal[1] = v[25];
+		colors.yellow_ideal[2] = v[26];
+
+
+
 	}
 
-	for (unsigned int i = 0; i < colors.size(); i++)
-	{
-		cout << colors[i] << endl;
-	}
+	return colors;
 
 }
 
