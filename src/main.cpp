@@ -325,7 +325,7 @@ color_data getColors(path currentFilePath)
 		      v.push_back( stoi(s) );
 		    }
 		  }
-
+		//Get colors from file
 		//Save data to struct
 		colors.blue_low[0] = v[0];
 		colors.blue_low[1] = v[1];
