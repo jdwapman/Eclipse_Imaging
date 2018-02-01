@@ -368,6 +368,8 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 		if(tarpValid[ get<1>(tarpAreas[i]) ] == true)
 		{
 			bestTarp = tarpContours[ get<1>(tarpAreas[i]) ];
+
+			this->dominantColor = get<0>(tarpDominantColor[get<1>(tarpAreas[i])]);
 //
 //			//Write information
 //			cout << "Area: " << get<0>(tarpAreas[get<1>(tarpAreas[i])]) << endl;

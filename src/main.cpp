@@ -71,6 +71,11 @@ int main(int argc, char** argv )
 
 	recursive_directory_iterator end_itr;
 
+	//Open color file
+	ofstream blueFile, pinkFile, yellowFile;
+	blueFile.open("/home/jwapman/Eclipse_Workspace/Target_Detection/blue_color_vals.txt", fstream::out);
+	pinkFile.open("/home/jwapman/Eclipse_Workspace/Target_Detection/pink_color_vals.txt", fstream::out);
+	yellowFile.open("/home/jwapman/Eclipse_Workspace/Target_Detection/yellow_color_vals.txt", fstream::out);
 
     /*----- PROCESS ALL IMAGES IN FOLDER -----*/
     for (recursive_directory_iterator itr(p); itr != end_itr; ++itr)
@@ -79,14 +84,13 @@ int main(int argc, char** argv )
 		string currentFilePath = itr->path().string();
 		string currentFileName = itr->path().filename().string();
 
-		cout << currentFilePath << endl;
+		//cout << currentFilePath << endl;
 
-		cout << "Reading " << currentFileName << endl;
+
 
 		//If directory, make folder and continue
 		if (is_directory(itr->path()))
 		{
-			cout << "Hi" << endl;
 			size_t index = 0;
 			string outputDirectoryPath = currentFilePath;
 			index = outputDirectoryPath.find("Input", index);
@@ -106,6 +110,8 @@ int main(int argc, char** argv )
 		if(currentFileName.find(".jpg") == string::npos)
 			continue;
 
+		cout << "Reading " << currentFileName << endl;
+
 		//Import image. imread imports in BGR format.
 		Mat cameraImgBGR = imread(currentFilePath, CV_LOAD_IMAGE_COLOR);
 
@@ -113,6 +119,7 @@ int main(int argc, char** argv )
 		Tarp blue("Blue", colors.blue_ideal, colors.blue_low, colors.blue_high);
 		Tarp pink("Pink", colors.pink_ideal, colors.pink_low, colors.pink_high);
 		Tarp yellow("Yellow", colors.yellow_ideal, colors.yellow_low, colors.yellow_high);
+
 
 		//Start timer
 		TickMeter stepTime;
@@ -200,6 +207,10 @@ int main(int argc, char** argv )
 		findPink.join();
 		findYellow.join();
 
+		blueFile << blue.dominantColor << endl;
+		pinkFile << pink.dominantColor << endl;
+		yellowFile << yellow.dominantColor << endl;
+
 		//Sequential option
 //		blue.findBestTarp(imgHSV, splitImgHSV, finalContours[0]);
 //		pink.findBestTarp(imgHSV, splitImgHSV, finalContours[1]);
@@ -259,6 +270,10 @@ int main(int argc, char** argv )
     }
 
     /*----- EXIT PROGRAM -----*/
+
+    blueFile.close();
+    pinkFile.close();
+    yellowFile.close();
 
 	cuda::resetDevice();
 
