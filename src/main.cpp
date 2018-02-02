@@ -36,7 +36,7 @@ using namespace boost::filesystem;
 
 
 //Global configuration variables. False = read from filesystem;
-const bool readFromCamera = false;
+const bool readFromCamera = true;
 
 int main(int argc, char** argv )
 {
@@ -55,7 +55,6 @@ int main(int argc, char** argv )
 	cuda::resetDevice();
 
 	//Queues to store image data
-	queue<Mat> images;
 	queue<string> filePaths;
 	queue<color_data> colors;
 
@@ -96,8 +95,8 @@ int main(int argc, char** argv )
 
 	if(!readFromCamera)
 	{
-		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-//		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+//		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
+		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 
 		getImages(p, ref(filePaths), ref(colors));
 	}
@@ -134,6 +133,9 @@ int main(int argc, char** argv )
 		{
 			cameraImgBGR = imread(filePaths.front(), CV_LOAD_IMAGE_COLOR); //Import image. imread imports in BGR format.
 			//Don't pop filepath until after save
+
+			if(cameraImgBGR.empty())
+				continue;
 		}
 
 

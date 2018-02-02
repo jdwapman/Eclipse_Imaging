@@ -142,23 +142,16 @@ void getImages(path p, queue<string>& filePaths, queue<color_data>& colors)
 		/*----- CALIBRATE -----*/
 		color_data imgColors = getColors(itr->path()); //Read colors from text file in folder. Inefficient, but easy.
 
-		/*----- READ & CHECK -----*/
-
 		//If not a jpeg, skip to next file
 		if(currentFileName.find(".jpg") == string::npos)
 			continue;
 
 		cout << "Reading " << currentFileName << endl;
 
-		/*----- ADD DATA TO QUEUES -----*/
-		Mat image = imread(currentFilePath, CV_LOAD_IMAGE_COLOR); //Import image. imread imports in BGR format.
 
-		//Make sure image actually exists
-		if(image.empty() == false)
-		{
-			filePaths.push(currentFilePath);
-			colors.push(imgColors);
-		}
+		filePaths.push(currentFilePath);
+		colors.push(imgColors);
+
 	}
 
 	cout << endl << endl;
