@@ -77,14 +77,7 @@ int main(int argc, char** argv )
 	pinkFile.open("/home/jwapman/Eclipse_Workspace/Target_Detection/pink_color_vals.txt", fstream::out);
 	yellowFile.open("/home/jwapman/Eclipse_Workspace/Target_Detection/yellow_color_vals.txt", fstream::out);
 
-	//Initialize Camera
-	VideoCapture cap;
-	cap.open(0);
-	if( !cap.isOpened() )
-	{
-		cout << "***Could not initialize capturing...***\n";
-		return -1;
-	}
+
 
 
     /*----- PROCESS ALL IMAGES IN FOLDER -----*/
