@@ -66,8 +66,8 @@ int main(int argc, char** argv )
 
 
 	/*----- SET UP FOLDER -----*/
-	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 
 	recursive_directory_iterator end_itr;
 
@@ -76,6 +76,16 @@ int main(int argc, char** argv )
 	blueFile.open("/home/jwapman/Eclipse_Workspace/Target_Detection/blue_color_vals.txt", fstream::out);
 	pinkFile.open("/home/jwapman/Eclipse_Workspace/Target_Detection/pink_color_vals.txt", fstream::out);
 	yellowFile.open("/home/jwapman/Eclipse_Workspace/Target_Detection/yellow_color_vals.txt", fstream::out);
+
+	//Initialize Camera
+	VideoCapture cap;
+	cap.open(0);
+	if( !cap.isOpened() )
+	{
+		cout << "***Could not initialize capturing...***\n";
+		return -1;
+	}
+
 
     /*----- PROCESS ALL IMAGES IN FOLDER -----*/
     for (recursive_directory_iterator itr(p); itr != end_itr; ++itr)
@@ -207,9 +217,9 @@ int main(int argc, char** argv )
 		findPink.join();
 		findYellow.join();
 
-		blueFile << blue.dominantColor << endl;
-		pinkFile << pink.dominantColor << endl;
-		yellowFile << yellow.dominantColor << endl;
+		blueFile << blue.dominantColor * 2 << endl;
+		pinkFile << pink.dominantColor * 2 << endl;
+		yellowFile << yellow.dominantColor * 2 << endl;
 
 		//Sequential option
 //		blue.findBestTarp(imgHSV, splitImgHSV, finalContours[0]);
@@ -274,7 +284,7 @@ int main(int argc, char** argv )
     blueFile.close();
     pinkFile.close();
     yellowFile.close();
-
+    cap.release();
 	cuda::resetDevice();
 
     return 0;
@@ -318,7 +328,7 @@ color_data getColors(path currentFilePath)
 	if(exists(calibrationPath))
 	{
 
-		cout << calibrationPath << endl;
+		//cout << calibrationPath << endl;
 
 		ifstream f;
 		f.open(calibrationPath);
