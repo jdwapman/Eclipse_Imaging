@@ -57,14 +57,10 @@ Mat drawContours(Mat& image, vector<vector<Point> > finalContours)
 }
 
 //Save an image to the filesystem
-void saveImage(const Mat& img, const string path)
+void saveImage(const Mat& img, const string savePath)
 {
-	size_t index = 0;
-	string writePath = path;
-	index = writePath.find("Input", index);
-	writePath.replace(index,5,"Output"); //Replace "Input" with "Output
-	cout << writePath << endl;
-	imwrite(writePath,img);
+	cout << savePath << endl;
+	imwrite(savePath,img);
 
 }
 

@@ -15,7 +15,7 @@
 using namespace std;
 using namespace cv;
 
-void saveImage(const Mat& img, const string path);
+void saveImage(const Mat& img, const string savePath);
 Mat drawContours(Mat& image, vector<vector<Point> > finalContours);
 
 #endif /* SRC_SAVEIMAGES_H_ */
