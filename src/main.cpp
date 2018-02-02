@@ -36,7 +36,7 @@ using namespace boost::filesystem;
 
 
 //Global configuration variables. False = read from filesystem;
-const bool readFromCamera = true;
+const bool readFromCamera = false;
 
 int main(int argc, char** argv )
 {
@@ -76,8 +76,8 @@ int main(int argc, char** argv )
 		//Camera Settings
 		cam1.set(CAP_PROP_AUTO_EXPOSURE, 0.25); //Why 0.25? No idea, but it works
 
-		cam1.set(CAP_PROP_FRAME_WIDTH, 960);
-		cam1.set(CAP_PROP_FRAME_HEIGHT, 540);
+		cam1.set(CAP_PROP_FRAME_WIDTH, 1920);
+		cam1.set(CAP_PROP_FRAME_HEIGHT, 1080);
 
 
 		double exp = 4; //Shutter speed? Use increments of 2x or 0.5x for full stops
@@ -169,7 +169,7 @@ int main(int argc, char** argv )
 		{
 			path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Output_Images/Camera_Images/img_") + to_string(numImages) + ".jpg");
 			savePath = p.string();
-			cout << savePath;
+			//cout << savePath;
 		}
 		else //Create save path if reading from filesystem
 		{
@@ -195,7 +195,7 @@ int main(int argc, char** argv )
 		{
 			run = false;
 		}
-		if(numImages == 100) //Exit after 100 images. //TODO: REMOVE FOR FLIGHT
+		if(numImages == 10) //Exit after 100 images. //TODO: REMOVE FOR FLIGHT
 		{
 			run = false;
 		}
