@@ -7,6 +7,8 @@
 
 #include "Tarp.h"
 #include "tarpSort.h"
+#include "timing.h"
+#include "colors.h"
 #include <unistd.h>
 #include <vector>
 #include <opencv2/opencv.hpp>
@@ -40,6 +42,9 @@ Tarp::Tarp(string color, int* ideal, int* low, int* high)
 	this->hsv_high[0] = (int)(high[0] / 2.0);
 	this->hsv_high[1] = (int)((high[1] / 100.0) * 255.0);
 	this->hsv_high[2] = (int)((high[2] / 100.0) * 255.0);
+
+	dominantColor = 0.0;
+
 }
 
 Tarp::~Tarp()
