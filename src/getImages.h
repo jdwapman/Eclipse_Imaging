@@ -23,7 +23,7 @@ using namespace cv;
 using namespace boost::filesystem;
 
 
-queue<Mat> getImages(path p, queue<string>& filePaths, queue<color_data>& colors); //Get images from filesystem
+void getImages(path p, queue<string>& filePaths, queue<color_data>& colors); //Get images from filesystem
 
 queue<Mat> getImages(VideoCapture cam1); //Get images from cameras. Eventually add one more camera
 

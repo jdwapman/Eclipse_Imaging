@@ -36,7 +36,7 @@ using namespace boost::filesystem;
 
 
 //Global configuration variables. False = read from filesystem;
-const bool readFromCamera = true;
+const bool readFromCamera = false;
 
 int main(int argc, char** argv )
 {
@@ -89,24 +89,30 @@ int main(int argc, char** argv )
 	/*----- IMAGE CAPTURE AND PROCESSING -----*/
 
 	/*----- VARIABLES -----*/
-	//Store whether all files have been read from filesystem
-	bool allFilesRead = false;
 
 	//IMPORTANT: Camera capture & image processing will continue as long as "run" is true.
 	//Exit using telemetry sensors
 	bool run = true;
+
+	if(!readFromCamera)
+	{
+		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
+//		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+
+		getImages(p, ref(filePaths), ref(colors));
+	}
 
 
 	while(run)
 	{
 
 		/*----- GET IMAGE(S) -----*/
+		Mat cameraFrame;
 		if(readFromCamera == true) //Set up and read from camera. Captures 1 frame per iteration
 		{
 			//Capture Image
-			Mat cameraFrame;
+
 			cam1 >> cameraFrame;
-			images.push(cameraFrame);
 			//imshow("Camera Preview", cameraFrame);
 			//waitKey(0);
 			numImages++;
@@ -115,24 +121,24 @@ int main(int argc, char** argv )
 		}
 		else //Read from filesystem. Captures entire queue
 		{
-			if(allFilesRead == false)
-			{
-//				path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-				path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 
-				images = getImages(p, ref(filePaths), ref(colors));
-			}
-
-			allFilesRead = true; //Only read once
 		}
 
 		/*----- PROCESS ALL IMAGES IN QUEUE -----*/
-		Mat cameraImgBGR = images.front(); //Get
-		images.pop();	//Remove
-		color_data imgColors = colors.front(); //Get
+		Mat cameraImgBGR;
+		if(readFromCamera)
+		{
+			cameraImgBGR = cameraFrame;
+		}
+		else //Read from filesystem
+		{
+			cameraImgBGR = imread(filePaths.front(), CV_LOAD_IMAGE_COLOR); //Import image. imread imports in BGR format.
+			//Don't pop filepath until after save
+		}
 
-		if(!readFromCamera)
-			colors.pop();	//Remove
+
+		color_data imgColors = colors.front(); //Get
+		colors.pop();	//Remove
 
 
 		/*----- FIND TARP LOCATIONS -----*/
@@ -154,12 +160,13 @@ int main(int argc, char** argv )
 		}
 		else //Create save path if reading from filesystem
 		{
-			string savePath = filePaths.front();
+			savePath = filePaths.front();
 			filePaths.pop();
 
 			size_t index = 0;
 			index = savePath.find("Input", index);
 			savePath.replace(index,5,"Output"); //Replace "Input" with "Output
+			//cout << savePath;
 		}
 
 		saveImage(cameraImgBGRSmall, savePath);

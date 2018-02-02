@@ -116,10 +116,8 @@ color_data getColors(path currentFilePath)
 
 }
 
-queue<Mat> getImages(path p, queue<string>& filePaths, queue<color_data>& colors)
+void getImages(path p, queue<string>& filePaths, queue<color_data>& colors)
 {
-	queue<Mat> images; //Queue of images to return for processing. Multiple if reading from filesystem
-
 	recursive_directory_iterator end_itr;
 
 	for (recursive_directory_iterator itr(p); itr != end_itr; ++itr)
@@ -158,14 +156,13 @@ queue<Mat> getImages(path p, queue<string>& filePaths, queue<color_data>& colors
 		//Make sure image actually exists
 		if(image.empty() == false)
 		{
-			images.push(image);
 			filePaths.push(currentFilePath);
 			colors.push(imgColors);
-			}
+		}
 	}
 
 	cout << endl << endl;
 
-	return images;
+	return;
 }
 
