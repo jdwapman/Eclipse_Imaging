@@ -43,7 +43,7 @@ vector<vector<Point> > processImage(Mat cameraImgBGR, color_data colors)
 	int imgType = cameraImgBGR.type();
 
 	//Reduced image dimensions
-	double scale = (1.0/4.0);
+	double scale = (1.0/1.0);
 	int rrows = rows * scale;
 	int rcols = cols * scale;
 

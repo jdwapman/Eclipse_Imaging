@@ -27,7 +27,7 @@ Mat drawContours(Mat& image, vector<vector<Point> > finalContours)
 	 }
 
 	Mat cameraImgBGRSmall;
-	double scale = (1.0/4.0);
+	double scale = (1.0/1.0);
 	resize(image,cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
 
 	//Draw contours on image.

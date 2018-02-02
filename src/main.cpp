@@ -101,6 +101,12 @@ int main(int argc, char** argv )
 		getImages(p, ref(filePaths), ref(colors));
 	}
 
+	//Start timer
+	TickMeter stepTime;
+	TickMeter totalTime;
+	stepTime.start();
+	totalTime.start();
+
 
 	while(run)
 	{
@@ -138,6 +144,8 @@ int main(int argc, char** argv )
 				continue;
 		}
 
+		printTime("Read Image", stepTime);
+
 
 		color_data imgColors = colors.front(); //Get
 		colors.pop();	//Remove
@@ -146,10 +154,13 @@ int main(int argc, char** argv )
 		/*----- FIND TARP LOCATIONS -----*/
 		vector<vector<Point> > finalContours = processImage(cameraImgBGR, imgColors);
 
+		printTime("Process Image", stepTime);
+
 
 		/*----- DRAW RESULTS -----*/
 		Mat cameraImgBGRSmall = drawContours(cameraImgBGR, finalContours);
 
+		printTime("Draw Contours", stepTime);
 
 		/*----- SAVE IMAGES -----*/
 
@@ -172,6 +183,8 @@ int main(int argc, char** argv )
 		}
 
 		saveImage(cameraImgBGRSmall, savePath);
+
+		printTime("Save Image", stepTime);
 
 		cout << endl << endl;
 
