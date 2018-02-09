@@ -391,24 +391,24 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 
 
 	//draw contours
-	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
-
-	//Draw contours on image.
-		for(unsigned int i = 0; i< tarpContours.size(); i++ )
-		{
-			Scalar color = Scalar(255,255,255);
-			if(tarpContours[i].size() > 0){
-				drawContours( drawmat, tarpContours, i, color, 1, 8);
-			}
-			else
-			{
-				cout << "No valid tarp" << endl;
-			}
-		}
-
-		imshow("Final Image", drawmat);
-		resizeWindow("Final Image", 800, 800);
-		waitKey(0); //Wait for any key press before closing window
+//	Mat drawmat = Mat::zeros(splitImgHSV[0].rows,splitImgHSV[0].cols, CV_8UC1);
+//
+//	//Draw contours on image.
+//		for(unsigned int i = 0; i< tarpContours.size(); i++ )
+//		{
+//			Scalar color = Scalar(255,255,255);
+//			if(tarpContours[i].size() > 0){
+//				drawContours( drawmat, tarpContours, i, color, 1, 8);
+//			}
+//			else
+//			{
+//				cout << "No valid tarp" << endl;
+//			}
+//		}
+//
+//		imshow("Final Image", drawmat);
+//		resizeWindow("Final Image", 800, 800);
+//		waitKey(0); //Wait for any key press before closing window
 
 	//: Scale bestTarp to fit large output image (if desired)
 

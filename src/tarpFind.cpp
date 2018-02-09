@@ -46,7 +46,7 @@ vector<vector<Point> > processImage(Mat cameraImgBGR, color_data colors)
 	int imgType = cameraImgBGR.type();
 
 	//Reduced image dimensions
-	double scale = (1.0/1.0);
+	double scale = (1.0/4.0);
 	int rrows = rows * scale;
 	int rcols = cols * scale;
 
@@ -60,7 +60,7 @@ vector<vector<Point> > processImage(Mat cameraImgBGR, color_data colors)
 	}
 
 	Mat cameraImgBGRSmall(rrows,rcols,imgType);
-	cameraImgBGRSmall = cameraImgBGR;
+
 	printTime("Check Image", stepTime);
 
 	//Run multiple times to get accurate timing info. First iteration
@@ -70,8 +70,8 @@ vector<vector<Point> > processImage(Mat cameraImgBGR, color_data colors)
 	/*----- RESIZE/FILTER IMAGE -----*/
 
 	//Resize with CPU. Faster than resizing using GPU due to memory latency
-
-	//resize(cameraImgBGR,cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
+//	cameraImgBGRSmall = cameraImgBGR;
+	resize(cameraImgBGR,cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
 
 	printTime("Resize CPU", stepTime);
 

@@ -27,16 +27,16 @@ Mat drawContours(Mat& image, vector<vector<Point> > finalContours)
 	 }
 
 	Mat cameraImgBGRSmall;
-	double scale = (1.0/1.0);
+	double scale = (1.0/4.0);
 	resize(image,cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
 
 	//Draw contours on image.
-	const Scalar color[3] = {Scalar(0,0,255),Scalar(255,0,0),Scalar(0,255,0)};
+	const Scalar color[3] = {Scalar(50,0,0),Scalar(0,0,255),Scalar(24,130,0)};
 	for(unsigned int i = 0; i< finalContours.size(); i++ )
 	{
 		if(finalContours[i].size() > 0){
 			drawContours( cameraImgBGRSmall, finalContours, i, color[i], 3, 8);
-			//rectangle( cameraImgBGRSmall, boundRect[i].tl(), boundRect[i].br(), color[i], 2, 8, 0 );
+//			rectangle( cameraImgBGRSmall, boundRect[i].tl(), boundRect[i].br(), color[i], 10, 8, 0 );
 		}
 		else
 		{
