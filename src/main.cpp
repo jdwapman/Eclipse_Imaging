@@ -53,15 +53,6 @@ int main(int argc, char** argv )
 
 	VideoCapture cam1;
 
-	/*----- SET UP FOLDER -----*/
-
-    /*----- PROCESS ALL IMAGES IN FOLDER -----*/
-    for (recursive_directory_iterator itr(p); itr != end_itr; ++itr)
-    {
-    	//Path strings
-		string currentFilePath = itr->path().string();
-
-
 	if(readCamera)
 	{
 		cam1.open(0);
