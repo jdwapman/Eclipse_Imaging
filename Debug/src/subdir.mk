@@ -4,6 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+../src/Image.cpp \
 ../src/Tarp.cpp \
 ../src/getImages.cpp \
 ../src/gpuCustom.cpp \
@@ -14,6 +15,7 @@ CPP_SRCS += \
 ../src/timing.cpp 
 
 OBJS += \
+./src/Image.o \
 ./src/Tarp.o \
 ./src/getImages.o \
 ./src/gpuCustom.o \
@@ -24,6 +26,7 @@ OBJS += \
 ./src/timing.o 
 
 CPP_DEPS += \
+./src/Image.d \
 ./src/Tarp.d \
 ./src/getImages.d \
 ./src/gpuCustom.d \

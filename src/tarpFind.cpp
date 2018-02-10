@@ -13,6 +13,7 @@
 #include "Tarp.h"
 #include "colors.h"
 #include "timing.h"
+#include "Image.h"
 #include <future>
 #include <chrono>
 
@@ -21,9 +22,7 @@
 using namespace std;
 using namespace cv;
 
-
-
-vector<vector<Point> > processImage(Mat cameraImgBGR, color_data colors)
+void Image::processImage()
 {
 
 	//Start timer
@@ -32,34 +31,18 @@ vector<vector<Point> > processImage(Mat cameraImgBGR, color_data colors)
 	stepTime.start();
 	totalTime.start();
 
+	color_data colors = this->colors.front(); //Get
+	this->colors.pop();	//Remove
+
 	//Create Tarp Objects
 	Tarp blue("Blue", colors.blue_ideal, colors.blue_low, colors.blue_high);
 	Tarp pink("Pink", colors.pink_ideal, colors.pink_low, colors.pink_high);
 	Tarp yellow("Yellow", colors.yellow_ideal, colors.yellow_low, colors.yellow_high);
 
 
-
-
 	//Get image dimensions for preallocation. Can eventually replace with constants
-	int rows = cameraImgBGR.rows;
-	int cols = cameraImgBGR.cols;
-	int imgType = cameraImgBGR.type();
-
-	//Reduced image dimensions
-	double scale = (1.0/4.0);
-	int rrows = rows * scale;
-	int rcols = cols * scale;
-
-	//Check image exists
-	if(cameraImgBGR.empty() == true)
-	{
-		cout << "No image detected" << endl;
-		Mat empty;
-		return empty;
-		//continue; //Error code that no data was gathered
-	}
-
-	Mat cameraImgBGRSmall(rrows,rcols,imgType);
+	int rows = this->cameraImgBGR.rows;
+	int cols = this->cameraImgBGR.cols;
 
 	printTime("Check Image", stepTime);
 
@@ -71,12 +54,12 @@ vector<vector<Point> > processImage(Mat cameraImgBGR, color_data colors)
 
 	//Resize with CPU. Faster than resizing using GPU due to memory latency
 //	cameraImgBGRSmall = cameraImgBGR;
-	resize(cameraImgBGR,cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
+	resize(this->cameraImgBGR,this->cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
 
 	printTime("Resize CPU", stepTime);
 
 
-	cuda::GpuMat gpuCameraImgBGRSmall(cameraImgBGRSmall);
+	cuda::GpuMat gpuCameraImgBGRSmall(this->cameraImgBGRSmall);
 //		//Declare GPU matrices to hold converted color space
 //		cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
 //
@@ -130,8 +113,6 @@ vector<vector<Point> > processImage(Mat cameraImgBGR, color_data colors)
 
 	/*----- PER-TARP OPERATIONS -----*/
 
-	vector<vector<Point> > finalContours(3);
-
 	//Threading option
 //	thread findBlue(&Tarp::findBestTarp,&blue, ref(imgHSV), ref(splitImgHSV),ref(finalContours[0]));
 //	thread findPink(&Tarp::findBestTarp,&pink, ref(imgHSV), ref(splitImgHSV),ref(finalContours[1]));
@@ -157,13 +138,15 @@ vector<vector<Point> > processImage(Mat cameraImgBGR, color_data colors)
 	//yellowFile << yellow.dominantColor * 2 << endl;
 
 	//Sequential option
-	blue.findBestTarp(imgHSV, splitImgHSV, finalContours[0]);
-	pink.findBestTarp(imgHSV, splitImgHSV, finalContours[1]);
-	yellow.findBestTarp(imgHSV, splitImgHSV, finalContours[2]);
+	vector<vector<Point> > bestContours(3);
+	blue.findBestTarp(imgHSV, splitImgHSV, bestContours[0]);
+	pink.findBestTarp(imgHSV, splitImgHSV, bestContours[1]);
+	yellow.findBestTarp(imgHSV, splitImgHSV, bestContours[2]);
+	this->finalContours = bestContours;
 
 	printTime("Decision", stepTime);
 
 
-	return finalContours;
+	return;
 }
 

@@ -27,6 +27,7 @@
 #include "tarpFind.h"
 #include "getImages.h"
 #include "saveImages.h"
+#include "Image.h"
 
 
 //Namespaces
@@ -54,14 +55,9 @@ int main(int argc, char** argv )
 	cuda::setDevice(0);
 	cuda::resetDevice();
 
-	//Queues to store image data
-	queue<string> filePaths;
-	queue<color_data> colors;
-
 	/*----- INITIALIZE CAMERA -----*/
 
 	VideoCapture cam1;
-	int numImages = 0;
 
 	if(readFromCamera == true)
 	{
@@ -89,17 +85,12 @@ int main(int argc, char** argv )
 
 	/*----- VARIABLES -----*/
 
-	//IMPORTANT: Camera capture & image processing will continue as long as "run" is true.
-	//Exit using telemetry sensors
-	bool run = true;
 
-	if(!readFromCamera)
-	{
-//		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 
-		getImages(p, ref(filePaths), ref(colors));
-	}
+
+//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+
 
 	//Start timer
 	TickMeter stepTime;
@@ -108,101 +99,21 @@ int main(int argc, char** argv )
 	totalTime.start();
 
 
-	while(run)
-	{
+	//IMPORTANT: Camera capture & image processing will continue as long as "run" is true.
+	//Exit using telemetry sensors
+	bool run = true;
 
-		/*----- GET IMAGE(S) -----*/
-		Mat cameraFrame;
-		if(readFromCamera == true) //Set up and read from camera. Captures 1 frame per iteration
-		{
-			//Capture Image
+	//Set up image filesystem class
 
-			cam1 >> cameraFrame;
-			//imshow("Camera Preview", cameraFrame);
-			//waitKey(0);
-			numImages++;
-			color_data c;
-			colors.push(c);
-		}
-		else //Read from filesystem. Captures entire queue
-		{
+	double scale = 1.0/4.0;
 
-		}
+	Image im(p, scale);
 
-		/*----- PROCESS ALL IMAGES IN QUEUE -----*/
-		Mat cameraImgBGR;
-		if(readFromCamera)
-		{
-			cameraImgBGR = cameraFrame;
-		}
-		else //Read from filesystem
-		{
-			cameraImgBGR = imread(filePaths.front(), CV_LOAD_IMAGE_COLOR); //Import image. imread imports in BGR format.
-			//Don't pop filepath until after save
+	im.getImage();
+	im.processImage();
+	im.drawImageContours();
+	im.saveImage();
 
-			if(cameraImgBGR.empty())
-				continue;
-		}
-
-		printTime("Read Image", stepTime);
-
-
-		color_data imgColors = colors.front(); //Get
-		colors.pop();	//Remove
-
-
-		/*----- FIND TARP LOCATIONS -----*/
-		vector<vector<Point> > finalContours = processImage(cameraImgBGR, imgColors);
-
-		printTime("Process Image", stepTime);
-
-
-		/*----- DRAW RESULTS -----*/
-		Mat cameraImgBGRSmall = drawContours(cameraImgBGR, finalContours);
-
-		printTime("Draw Contours", stepTime);
-
-		/*----- SAVE IMAGES -----*/
-
-		string savePath;
-		if(readFromCamera)
-		{
-			path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Output_Images/Camera_Images/img_") + to_string(numImages) + ".jpg");
-			savePath = p.string();
-			//cout << savePath;
-		}
-		else //Create save path if reading from filesystem
-		{
-			savePath = filePaths.front();
-			filePaths.pop();
-
-			size_t index = 0;
-			index = savePath.find("Input", index);
-			savePath.replace(index,5,"Output"); //Replace "Input" with "Output
-			//cout << savePath;
-		}
-
-		saveImage(cameraImgBGRSmall, savePath);
-
-		printTime("Save Image", stepTime);
-
-		cout << endl << endl;
-
-
-		/*----- CHECK EXIT CONDITIONS -----*/
-		//Exit if all filesystem images have been processed
-		if(readFromCamera == false && filePaths.empty())
-		{
-			run = false;
-		}
-		if(numImages == 10) //Exit after 100 images. //TODO: REMOVE FOR FLIGHT
-		{
-			run = false;
-		}
-
-
-
-	}
 
     /*----- EXIT PROGRAM -----*/
 
