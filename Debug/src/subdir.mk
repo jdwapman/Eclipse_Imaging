@@ -6,7 +6,6 @@
 CPP_SRCS += \
 ../src/Image.cpp \
 ../src/Tarp.cpp \
-../src/getImages.cpp \
 ../src/gpuCustom.cpp \
 ../src/main.cpp \
 ../src/processImage.cpp \
@@ -16,7 +15,6 @@ CPP_SRCS += \
 OBJS += \
 ./src/Image.o \
 ./src/Tarp.o \
-./src/getImages.o \
 ./src/gpuCustom.o \
 ./src/main.o \
 ./src/processImage.o \
@@ -26,7 +24,6 @@ OBJS += \
 CPP_DEPS += \
 ./src/Image.d \
 ./src/Tarp.d \
-./src/getImages.d \
 ./src/gpuCustom.d \
 ./src/main.d \
 ./src/processImage.d \

@@ -5,12 +5,16 @@
  *      Author: jwapman
  */
 
+//System Libraries
+#include <string>
+#include <queue>
+
+//Source Files
 #include "Image.h"
 #include "colors.h"
 
+//OpenCV
 #include <opencv2/opencv.hpp>
-#include <string>
-#include <queue>
 
 //Boost
 #include "boost/filesystem.hpp"
@@ -46,6 +50,7 @@ Image::Image(path folderPath, double scale)
 	this->getFileImages();
 }
 
+//Destructor. Unused.
 Image::~Image()
 {
 
@@ -57,12 +62,12 @@ bool Image::getImage()
 
 	numImages++;
 
-	if(readCamera)
+	if(readCamera) //Read from camera
 	{
 		//Read image from camera
 		this->cam >> this->cameraImgBGR;
 
-		color_data c; //Create default color variable. Will need to fix
+		color_data c; //Create default color variable. Will need to implement pre-flight calibration
 		this->colors.push(c);
 
 		if(this->cameraImgBGR.empty())
@@ -75,7 +80,7 @@ bool Image::getImage()
 			return true;
 		}
 	}
-	else
+	else //Read from filesystem
 	{
 		//Import image. imread imports in BGR format.
 
@@ -97,6 +102,7 @@ bool Image::getImage()
 	}
 }
 
+//Get color calibration data from the .txt file in the folder with each image
 color_data Image::getFileColors(path currentFilePath)
 {
 
@@ -131,9 +137,6 @@ color_data Image::getFileColors(path currentFilePath)
 
 	if(exists(calibrationPath))
 	{
-
-		//cout << calibrationPath << endl;
-
 		ifstream f;
 		f.open(calibrationPath);
 
@@ -185,15 +188,14 @@ color_data Image::getFileColors(path currentFilePath)
 		colors.yellow_ideal[0] = v[24];
 		colors.yellow_ideal[1] = v[25];
 		colors.yellow_ideal[2] = v[26];
-
-
-
 	}
 
 	return colors;
 
 }
 
+//Loop through the parent folder in the filesystem to add all image paths to queue
+//Makes directories
 void Image::getFileImages()
 {
 	recursive_directory_iterator end_itr;
@@ -218,7 +220,7 @@ void Image::getFileImages()
 		}
 
 		/*----- CALIBRATE -----*/
-		color_data imgColors = this->getFileColors(itr->path()); //Read colors from text file in folder. Inefficient, but easy.
+		color_data imgColors = this->getFileColors(itr->path()); //Read colors from text file in folder. Inefficient, but easy and only used during testing from filesystem.
 
 		//If not a jpeg, skip to next file
 		if(currentFileName.find(".jpg") == string::npos)
@@ -240,22 +242,22 @@ void Image::getFileImages()
 void Image::saveImage()
 {
 
-	if(this->readCamera)
+	if(this->readCamera) //Save numerically
 	{
 		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Output_Images/Camera_Images/img_") + to_string(this->numImages) + ".jpg");
 		this->imagePath = p.string();
 	}
-	else
+	else //Save with original filename in output folder
 	{
 		size_t index = 0;
 		index = this->imagePath.find("Input", index); //TODO: Separate imagePath, saveImagePath
 		this->imagePath.replace(index,5,"Output"); //Replace "Input" with "Output
 	}
 
-	//cout << savePath << endl;
 	imwrite(this->imagePath,this->cameraImgBGR);
 }
 
+//Draws contours on top of cameraImgBGR.
 void Image::drawImageContours()
 {
 
@@ -293,12 +295,8 @@ void Image::drawImageContours()
 	for(unsigned int i = 0; i< finalContours.size(); i++ )
 	{
 		if(contours[i].size() > 0){
-			drawContours( this->cameraImgBGRContours, contours, i, color[i], 20, 8);
+			drawContours( this->cameraImgBGR, contours, i, color[i], 20, 8);
 //			rectangle( this->cameraImgBGRContours, boundRect[i].tl(), boundRect[i].br(), color[i], 10, 8, 0 );
-		}
-		else
-		{
-			cout << "No valid tarp" << endl;
 		}
 	}
 

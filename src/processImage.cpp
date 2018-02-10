@@ -46,36 +46,25 @@ void Image::processImage()
 	/*----- RESIZE/FILTER IMAGE -----*/
 
 	//Resize with CPU. Faster than resizing using GPU due to memory latency
+	cuda::GpuMat gpuCameraImgBGR(this->cameraImgBGR);
+	cuda::GpuMat gpuCameraImgBGRSmall;
+
 	if(this->scale != 1)
 	{
-		resize(this->cameraImgBGR,this->cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
+		cuda::resize(gpuCameraImgBGR,gpuCameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
 	}
 	else
 	{
-		cameraImgBGRSmall = cameraImgBGR;
+		gpuCameraImgBGRSmall = gpuCameraImgBGR;
 	}
 
-	printTime("Resize CPU", stepTime);
+	printTime("     Resize GPU", stepTime);
 
-
-	cuda::GpuMat gpuCameraImgBGRSmall(this->cameraImgBGRSmall);
-//		//Declare GPU matrices to hold converted color space
-//		cuda::GpuMat gpuImgHSV(rrows,rcols,imgType);
-//
-//		//Convert color space to HSV using GPU
+	//Convert color space to HSV using GPU
 	cuda::GpuMat gpuImgHSV;
 	cuda::cvtColor(gpuCameraImgBGRSmall, gpuImgHSV, CV_BGR2HSV,0);
 
-
-
-
-	//Mat imgHSV(gpuImgHSV);
-
-	printTime("Convert Color 0", stepTime);
-
-//
-//
-//		//Split HSV image into 3 channels
+	//Split HSV image into 3 channels
 	vector<cuda::GpuMat> gpuSplitImgHSV(3);
 	cuda::split(gpuImgHSV,gpuSplitImgHSV);
 
@@ -84,41 +73,28 @@ void Image::processImage()
 	gpuSplitImgHSV[1].download(splitImgHSV[1]);
 	gpuSplitImgHSV[2].download(splitImgHSV[2]);
 
-//		Mat imgHSV;
-//		cvtColor(cameraImgBGRSmall, imgHSV, CV_BGR2HSV,0);
-//		vector<Mat> splitImgHSV(3);
-//		split(imgHSV, splitImgHSV);
 
 	//GPU Split faster than CPU
 	Mat imgHSV(gpuImgHSV);
-	printTime("Convert Color", stepTime);
+	printTime("     Convert & Split", stepTime);
 
 	//Blur image (Must use CPU for a 3-channel image)
-
-	printTime("Start Blur", stepTime);
-
 	boxFilter(imgHSV,imgHSV,-1,Size(12,12));
 
-
-
-
-//	namedWindow("Final Image",WINDOW_NORMAL);
-//	resizeWindow("Final Image",800,800);
-//	imshow("Final Image", imgHSV);
-//	waitKey(0); //Wait for any key press before closing window
-
-	printTime("Blur", stepTime);
+	printTime("     Blur", stepTime);
 
 
 	/*----- PER-TARP OPERATIONS -----*/
 
+	vector<vector<Point> > bestContours(3);
+
 	//Threading option
-//	thread findBlue(&Tarp::findBestTarp,&blue, ref(imgHSV), ref(splitImgHSV),ref(finalContours[0]));
-//	thread findPink(&Tarp::findBestTarp,&pink, ref(imgHSV), ref(splitImgHSV),ref(finalContours[1]));
-//	thread findYellow(&Tarp::findBestTarp,&yellow, ref(imgHSV), ref(splitImgHSV),ref(finalContours[2]));
-//	findBlue.join();
-//	findPink.join();
-//	findYellow.join();
+	thread findBlue(&Tarp::findBestTarp,&blue, ref(imgHSV), ref(splitImgHSV),ref(bestContours[0]));
+	thread findPink(&Tarp::findBestTarp,&pink, ref(imgHSV), ref(splitImgHSV),ref(bestContours[1]));
+	thread findYellow(&Tarp::findBestTarp,&yellow, ref(imgHSV), ref(splitImgHSV),ref(bestContours[2]));
+	findBlue.join();
+	findPink.join();
+	findYellow.join();
 
 //	//Save data to filesystem
 //	ofstream blueFile, pinkFile, yellowFile;
@@ -137,13 +113,17 @@ void Image::processImage()
 	//yellowFile << yellow.dominantColor * 2 << endl;
 
 	//Sequential option
-	vector<vector<Point> > bestContours(3);
-	blue.findBestTarp(imgHSV, splitImgHSV, bestContours[0]);
-	pink.findBestTarp(imgHSV, splitImgHSV, bestContours[1]);
-	yellow.findBestTarp(imgHSV, splitImgHSV, bestContours[2]);
+
+//	blue.findBestTarp(imgHSV, splitImgHSV, bestContours[0]);
+//	pink.findBestTarp(imgHSV, splitImgHSV, bestContours[1]);
+//	yellow.findBestTarp(imgHSV, splitImgHSV, bestContours[2]);
+
+
+
+
 	this->finalContours = bestContours;
 
-	printTime("Decision", stepTime);
+	printTime("     Decision", stepTime);
 
 
 	return;

@@ -31,7 +31,7 @@ using namespace boost::filesystem;
 
 
 //Global configuration variables. False = read from filesystem;
-const bool readCamera = false;
+const bool readCamera = true;
 
 int main(int argc, char** argv )
 {
@@ -53,7 +53,7 @@ int main(int argc, char** argv )
 
 	VideoCapture cam1;
 
-	if(readFromCamera == true)
+	if(readCamera)
 	{
 		cam1.open(0);
 
@@ -78,12 +78,10 @@ int main(int argc, char** argv )
 //	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
 	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 
-	double scale = 1.0/4.0;
+	double scale = 1.0/1.0;
 
-	Image im(p, scale);
-
-	if(readCamera)
-		im.calibrate();
+	//Image im(p, scale);
+	Image im(cam1, scale);
 
 	//Start timer
 	TickMeter stepTime;
@@ -100,6 +98,8 @@ int main(int argc, char** argv )
 	while(run){
 
 		bool imageCaptured = im.getImage(); //Saves the image from camera or filesystem and outputs status
+		printTime("Get Image", stepTime);
+
 
 		if(!imageCaptured)
 			run = false;
@@ -107,14 +107,18 @@ int main(int argc, char** argv )
 		if(imageCaptured)
 		{
 			im.processImage();
+			printTime("Process Image", stepTime);
 			im.drawImageContours();
 			im.saveImage();
-			cout << endl << endl;
+			printTime("Save Image", stepTime);
 		}
 
 
-		if(readCamera && (im.getNumImages() == 10)) //Point to stop taking images. NOTE: REMOVE BEFORE LAUNCH
+		if(readCamera && (im.getNumImages() == 100)) //Point to stop taking images. NOTE: REMOVE BEFORE LAUNCH
 			run = false;
+		printTime("Total Time", totalTime);
+
+		cout << endl << endl;
 
 	}
 

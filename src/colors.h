@@ -18,8 +18,8 @@ struct color_data{
 	int pink_high[3] = {350,60,100};
 	int pink_ideal[3] = {0,0,0};
 
-	int yellow_low[3] = {45,20,40};
-	int yellow_high[3] = {60,100,100};
+	int yellow_low[3] = {50,30,80};
+	int yellow_high[3] = {55,40,95};
 	int yellow_ideal[3] = {0,0,0};
 };
 
