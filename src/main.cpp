@@ -78,7 +78,7 @@ int main(int argc, char** argv )
 //	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
 	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 
-	double scale = 1.0/1.0;
+	double scale = 1.0/2.0;
 
 	//Image im(p, scale);
 	Image im(cam1, scale);
