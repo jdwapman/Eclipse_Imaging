@@ -7,6 +7,8 @@
 
 #include "Tarp.h"
 #include "tarpSort.h"
+#include "timing.h"
+#include "colors.h"
 #include <unistd.h>
 #include <vector>
 #include <opencv2/opencv.hpp>
@@ -40,6 +42,9 @@ Tarp::Tarp(string color, int* ideal, int* low, int* high)
 	this->hsv_high[0] = (int)(high[0] / 2.0);
 	this->hsv_high[1] = (int)((high[1] / 100.0) * 255.0);
 	this->hsv_high[2] = (int)((high[2] / 100.0) * 255.0);
+
+	dominantColor = 0.0;
+
 }
 
 Tarp::~Tarp()
@@ -315,7 +320,6 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	vector<vector<Point> > tarpContours = findTarpContours(imgHSV);
 
 	unsigned int numContours = tarpContours.size();
-
 	/*----- Get data -----*/
 
 	//Store whether a tarp is valid
@@ -331,7 +335,7 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	vector< tuple<double, unsigned int> > tarpDominantColor = findTarpHist(tarpContours, splitImgHSV, tarpValid);
 
 	//Get tarp mean, stddev
-	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanStddev = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
+	//vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanStddev = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
 
 	//Get tarp convexity
 	vector<bool> tarpConvexity(numContours, false);
@@ -400,8 +404,9 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 //				cout << "No valid tarp" << endl;
 //			}
 //		}
-
+//
 //		imshow("Final Image", drawmat);
+//		resizeWindow("Final Image", 800, 800);
 //		waitKey(0); //Wait for any key press before closing window
 
 	//: Scale bestTarp to fit large output image (if desired)
