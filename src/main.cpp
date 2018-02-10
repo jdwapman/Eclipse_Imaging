@@ -21,14 +21,8 @@
 #include <opencv2/opencv.hpp> //OpenCV library
 
 //Source Files
-#include "timing.h"
-#include "Tarp.h"
-#include "colors.h"
-#include "tarpFind.h"
-#include "getImages.h"
-#include "saveImages.h"
 #include "Image.h"
-
+#include "timing.h"
 
 //Namespaces
 using namespace std;
@@ -37,7 +31,7 @@ using namespace boost::filesystem;
 
 
 //Global configuration variables. False = read from filesystem;
-const bool readFromCamera = false;
+const bool readCamera = false;
 
 int main(int argc, char** argv )
 {
@@ -81,16 +75,15 @@ int main(int argc, char** argv )
 
 	}
 
-	/*----- IMAGE CAPTURE AND PROCESSING -----*/
-
-	/*----- VARIABLES -----*/
-
-
-
-
 //	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
 	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 
+	double scale = 1.0/4.0;
+
+	Image im(p, scale);
+
+	if(readCamera)
+		im.calibrate();
 
 	//Start timer
 	TickMeter stepTime;
@@ -99,21 +92,31 @@ int main(int argc, char** argv )
 	totalTime.start();
 
 
-	//IMPORTANT: Camera capture & image processing will continue as long as "run" is true.
-	//Exit using telemetry sensors
+
+	/*------CAPTURE, PROCESS, AND SAVE IMAGES-----*/
+
 	bool run = true;
 
-	//Set up image filesystem class
+	while(run){
 
-	double scale = 1.0/4.0;
+		bool imageCaptured = im.getImage(); //Saves the image from camera or filesystem and outputs status
 
-	Image im(p, scale);
+		if(!imageCaptured)
+			run = false;
 
-	im.getImage();
-	im.processImage();
-	im.drawImageContours();
-	im.saveImage();
+		if(imageCaptured)
+		{
+			im.processImage();
+			im.drawImageContours();
+			im.saveImage();
+			cout << endl << endl;
+		}
 
+
+		if(readCamera && (im.getNumImages() == 10)) //Point to stop taking images. NOTE: REMOVE BEFORE LAUNCH
+			run = false;
+
+	}
 
     /*----- EXIT PROGRAM -----*/
 

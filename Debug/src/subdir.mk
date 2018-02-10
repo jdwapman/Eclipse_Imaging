@@ -9,8 +9,7 @@ CPP_SRCS += \
 ../src/getImages.cpp \
 ../src/gpuCustom.cpp \
 ../src/main.cpp \
-../src/saveImages.cpp \
-../src/tarpFind.cpp \
+../src/processImage.cpp \
 ../src/tarpSort.cpp \
 ../src/timing.cpp 
 
@@ -20,8 +19,7 @@ OBJS += \
 ./src/getImages.o \
 ./src/gpuCustom.o \
 ./src/main.o \
-./src/saveImages.o \
-./src/tarpFind.o \
+./src/processImage.o \
 ./src/tarpSort.o \
 ./src/timing.o 
 
@@ -31,8 +29,7 @@ CPP_DEPS += \
 ./src/getImages.d \
 ./src/gpuCustom.d \
 ./src/main.d \
-./src/saveImages.d \
-./src/tarpFind.d \
+./src/processImage.d \
 ./src/tarpSort.d \
 ./src/timing.d 
 

@@ -39,13 +39,6 @@ void Image::processImage()
 	Tarp pink("Pink", colors.pink_ideal, colors.pink_low, colors.pink_high);
 	Tarp yellow("Yellow", colors.yellow_ideal, colors.yellow_low, colors.yellow_high);
 
-
-	//Get image dimensions for preallocation. Can eventually replace with constants
-	int rows = this->cameraImgBGR.rows;
-	int cols = this->cameraImgBGR.cols;
-
-	printTime("Check Image", stepTime);
-
 	//Run multiple times to get accurate timing info. First iteration
 	//Is always slower than normal
 
@@ -53,8 +46,14 @@ void Image::processImage()
 	/*----- RESIZE/FILTER IMAGE -----*/
 
 	//Resize with CPU. Faster than resizing using GPU due to memory latency
-//	cameraImgBGRSmall = cameraImgBGR;
-	resize(this->cameraImgBGR,this->cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
+	if(this->scale != 1)
+	{
+		resize(this->cameraImgBGR,this->cameraImgBGRSmall,Size(),scale,scale,INTER_LINEAR);
+	}
+	else
+	{
+		cameraImgBGRSmall = cameraImgBGR;
+	}
 
 	printTime("Resize CPU", stepTime);
 

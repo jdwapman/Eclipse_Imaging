@@ -320,7 +320,6 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	vector<vector<Point> > tarpContours = findTarpContours(imgHSV);
 
 	unsigned int numContours = tarpContours.size();
-	cout << "Contours:" << numContours << endl;
 	/*----- Get data -----*/
 
 	//Store whether a tarp is valid

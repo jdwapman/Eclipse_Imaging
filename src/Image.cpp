@@ -62,11 +62,12 @@ bool Image::getImage()
 		//Read image from camera
 		this->cam >> this->cameraImgBGR;
 
-		color_data c;
+		color_data c; //Create default color variable. Will need to fix
 		this->colors.push(c);
 
 		if(this->cameraImgBGR.empty())
 		{
+			cout << "No camera image available" << endl;
 			return false;
 		}
 		else
@@ -77,6 +78,10 @@ bool Image::getImage()
 	else
 	{
 		//Import image. imread imports in BGR format.
+
+		if(filePaths.empty()) //Check to see if there are any more images to import
+			return false;
+
 		this->cameraImgBGR = imread(this->filePaths.front(), CV_LOAD_IMAGE_COLOR); //Read
 		this->imagePath = this->filePaths.front(); //Save path of image
 		this->filePaths.pop(); //Remove
@@ -243,7 +248,7 @@ void Image::saveImage()
 	else
 	{
 		size_t index = 0;
-		index = this->imagePath.find("Input", index);
+		index = this->imagePath.find("Input", index); //TODO: Separate imagePath, saveImagePath
 		this->imagePath.replace(index,5,"Output"); //Replace "Input" with "Output
 	}
 
@@ -254,17 +259,17 @@ void Image::saveImage()
 void Image::drawImageContours()
 {
 
-	vector<vector<Point> > finalContours = this->finalContours;
+	vector<vector<Point> > contours = this->finalContours;
 
-	vector<vector<Point> > contours_poly( finalContours.size() );
-	vector<Rect> boundRect( finalContours.size() );
-	vector<Point2f>center( finalContours.size() );
-	vector<float>radius( finalContours.size() );
+	vector<vector<Point> > contours_poly( contours.size() );
+	vector<Rect> boundRect( contours.size() );
+	vector<Point2f>center( contours.size() );
+	vector<float>radius( contours.size() );
 
-	for(unsigned int i = 0; i < finalContours.size(); i++ )
+	for(unsigned int i = 0; i < contours.size(); i++ )
 	 {
-		if(finalContours[i].size() > 0){
-			boundRect[i] = boundingRect( Mat(finalContours[i]) );
+		if(contours[i].size() > 0){
+			boundRect[i] = boundingRect( Mat(contours[i]) );
 		}
 	 }
 
@@ -275,20 +280,20 @@ void Image::drawImageContours()
 	const Scalar color[3] = {Scalar(50,0,0),Scalar(0,0,255),Scalar(24,130,0)};
 
 
-	for(unsigned int i = 0; i < finalContours.size(); i++)
+	for(unsigned int i = 0; i < contours.size(); i++)
 	{
-		for(unsigned int j = 0; j < finalContours[i].size(); j++)
+		for(unsigned int j = 0; j < contours[i].size(); j++)
 		{
-			finalContours[i][j].x = finalContours[i][j].x / scale;
-			finalContours[i][j].y = finalContours[i][j].y / scale;
+			contours[i][j].x = contours[i][j].x / scale;
+			contours[i][j].y = contours[i][j].y / scale;
 		}
 	}
 
 
 	for(unsigned int i = 0; i< finalContours.size(); i++ )
 	{
-		if(finalContours[i].size() > 0){
-			drawContours( this->cameraImgBGRContours, finalContours, i, color[i], 20, 8);
+		if(contours[i].size() > 0){
+			drawContours( this->cameraImgBGRContours, contours, i, color[i], 20, 8);
 //			rectangle( this->cameraImgBGRContours, boundRect[i].tl(), boundRect[i].br(), color[i], 10, 8, 0 );
 		}
 		else
@@ -306,3 +311,7 @@ void Image::drawImageContours()
 	return;
 }
 
+int Image::getNumImages()
+{
+	return this->numImages;
+}

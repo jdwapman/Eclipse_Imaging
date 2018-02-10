@@ -38,6 +38,7 @@ class Image
 	bool readCamera; //Stores whether the image source is the camera or the filesystem
 	VideoCapture cam;
 
+	//Read & Save Paths
 	path folderPath;
 	string imagePath;
 
@@ -60,15 +61,20 @@ public:
 	//Get Images
 	bool getImage();
 
+	void calibrate();
+
+	//Return number of images captured
+	int getNumImages();
+
+	//Finds contours of tarps
 	void processImage();
 
-	//Save Images without contour labels
+	//Save Images
 	void saveImage();
-	void drawImageContours();
+	void drawImageContours(); //Modifies cameraImgBGR with contour overlays
 
 	//Save contour output to a text file
-	void saveContoursTextLarge(); //For full resolution image
-	void saveContoursTextSmall(); //For reduced-resolution image
+	void saveContoursText(); //For full resolution image
 };
 
 
