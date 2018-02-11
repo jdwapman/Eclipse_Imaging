@@ -15,7 +15,6 @@
 #include <iostream> //Input/output library
 #include <vector>
 #include <string>
-#include <algorithm> //For sorting
 #include <opencv2/opencv.hpp> //OpenCV library
 #include "Tarp.h"
 #include "colors.h"

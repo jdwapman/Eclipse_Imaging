@@ -7,3 +7,4 @@ Release/src/*.o
 /Debug/*
 /Release/*
 
+/Debug/
