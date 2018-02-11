@@ -5,15 +5,15 @@
  *      Author: jwapman
  */
 
-#ifndef SRC_FILTERIMGGPU_H_
-#define SRC_FILTERIMGGPU_H_
+#ifndef SRC_FILTERIMAGEGPU_H_
+#define SRC_FILTERIMAGEGPU_H_
 
 #include "opencv2/opencv.hpp"
 #include "Image.h"
 
 using namespace cv;
 
-Image filterImgGPU(Image& imgBGR, double scale);
+Image filterImageGPU(Image& imgBGR, double scale);
 
 
-#endif /* SRC_FILTERIMGGPU_H_ */
+#endif /* SRC_FILTERIMAGEGPU_H_ */

@@ -57,8 +57,6 @@ Image ImgSource::getImage()
 {
 
 	Image img;
-	TickMeter tm;
-	tm.start();
 
 	if(readCamera) //Read from camera
 	{
@@ -66,7 +64,6 @@ Image ImgSource::getImage()
 
 		//Read image from camera
 		this->cam >> capture;
-		printTime("     Capture Image", tm);
 
 		color_data c; //Create default color variable. Will need to implement pre-flight calibration
 

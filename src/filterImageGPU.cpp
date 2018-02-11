@@ -30,7 +30,7 @@
 using namespace std;
 using namespace cv;
 
-Image filterImgGPU(Image& img, double scale)
+Image filterImageGPU(Image& img, double scale)
 {
 
 	//Start timer

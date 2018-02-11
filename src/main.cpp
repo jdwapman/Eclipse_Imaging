@@ -9,10 +9,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <algorithm> //For sorting
 #include <future>
 #include <chrono>
-#include <queue>
 
 //Boost
 #include "boost/filesystem.hpp"
@@ -20,13 +18,16 @@
 //OpenCV
 #include <opencv2/opencv.hpp> //OpenCV library
 
-#include "filterImgGPU.h"
+//Source Files
 #include "ImgSource.h"
 #include "Image.h"
-//Source Files
-#include "timing.h"
-#include "searchImage.h"
+#include "filterImageGPU.h"
 #include "saveImage.h"
+#include "searchImage.h"
+
+//Misc Source Files
+#include "timing.h"
+
 
 //Namespaces
 using namespace std;
@@ -34,8 +35,8 @@ using namespace cv;
 using namespace boost::filesystem;
 
 
-//Global configuration variables. False = read from filesystem;
-const bool readCamera = false;
+/*======== IMAGE SOURCE LOCATION =======*/
+const bool readCamera = true;
 
 int main(int argc, char** argv )
 {
@@ -52,6 +53,12 @@ int main(int argc, char** argv )
 	//Initialize GPU
 	cuda::setDevice(0);
 	cuda::resetDevice();
+
+
+	//Filesystem sources
+	//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+
 
 	/*----- INITIALIZE CAMERA -----*/
 
@@ -79,9 +86,7 @@ int main(int argc, char** argv )
 
 	}
 
-//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
-
+	/*----- SET UP IMAGE SOURCE -----*/
 	ImgSource *src1;
 
 	if(readCamera)
@@ -103,30 +108,30 @@ int main(int argc, char** argv )
 	totalTime.start();
 
 
-
 	/*------CAPTURE, PROCESS, AND SAVE IMAGES-----*/
 	bool run = true;
 	int numImages = 0;
+
 	while(run)
 	{
-		Image img1 = src1->getImage();
+		Image cameraImage1 = src1->getImage();
 		printTime("Get Image", stepTime);
 
-		if(!img1.valid)
+		if(!cameraImage1.valid)
 			run = false;
 
 
 		if(run)
 		{
 			numImages++;
-			Image img2 = filterImgGPU(img1, scale);
+			Image filteredImage1 = filterImageGPU(cameraImage1, scale);
 			printTime("Filter Image", stepTime);
 
-			vector<vector<Point> > contours = searchImage(img2);
+			vector<vector<Point> > contours1 = searchImage(filteredImage1);
 			printTime("Search Image", stepTime);
 
-			Image img3 = drawImageContours(img1, contours, scale);
-			saveImage(img3, numImages);
+			Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
+			saveImage(contourImage1, numImages);
 			printTime("Save Image", stepTime);
 		}
 
