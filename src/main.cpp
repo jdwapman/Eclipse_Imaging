@@ -20,9 +20,13 @@
 //OpenCV
 #include <opencv2/opencv.hpp> //OpenCV library
 
-//Source Files
+#include "filterImgGPU.h"
+#include "ImgSource.h"
 #include "Image.h"
+//Source Files
 #include "timing.h"
+#include "searchImage.h"
+#include "saveImage.h"
 
 //Namespaces
 using namespace std;
@@ -31,7 +35,7 @@ using namespace boost::filesystem;
 
 
 //Global configuration variables. False = read from filesystem;
-const bool readCamera = true;
+const bool readCamera = false;
 
 int main(int argc, char** argv )
 {
@@ -78,10 +82,19 @@ int main(int argc, char** argv )
 //	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
 	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 
-	double scale = 1.0/4.0;
+	ImgSource *src1;
 
-	//Image im(p, scale);
-	Image im(cam1, scale);
+	if(readCamera)
+	{
+		src1 = new ImgSource(cam1);
+	}
+	else
+	{
+		src1 = new ImgSource(p);
+	}
+
+
+	double scale = 1.0/4.0;
 
 	//Start timer
 	TickMeter stepTime;
@@ -92,38 +105,37 @@ int main(int argc, char** argv )
 
 
 	/*------CAPTURE, PROCESS, AND SAVE IMAGES-----*/
-
 	bool run = true;
-
-	while(run){
-
-		bool imageCaptured = im.getImage(); //Saves the image from camera or filesystem and outputs status
+	int numImages = 0;
+	while(run)
+	{
+		Image img1 = src1->getImage();
 		printTime("Get Image", stepTime);
 
-
-		if(!imageCaptured)
+		if(!img1.valid)
 			run = false;
 
-		if(imageCaptured)
+
+		if(run)
 		{
-			im.processImage();
-			printTime("Process Image", stepTime);
-			im.drawImageContours();
-			im.saveImage();
+			numImages++;
+			Image img2 = filterImgGPU(img1, scale);
+			printTime("Filter Image", stepTime);
+
+			vector<vector<Point> > contours = searchImage(img2);
+			printTime("Search Image", stepTime);
+
+			Image img3 = drawImageContours(img1, contours, scale);
+			saveImage(img3, numImages);
 			printTime("Save Image", stepTime);
 		}
-
-
-		if(readCamera && (im.getNumImages() == 100)) //Point to stop taking images. NOTE: REMOVE BEFORE LAUNCH
-			run = false;
-		printTime("Total Time", totalTime);
 
 		cout << endl << endl;
 
 	}
 
     /*----- EXIT PROGRAM -----*/
-
+	delete src1;
 	cuda::resetDevice();
 	cam1.release();
 
