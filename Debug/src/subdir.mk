@@ -4,39 +4,30 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../src/Image_old.cpp \
 ../src/ImgSource.cpp \
 ../src/Tarp.cpp \
-../src/filterImgGPU.cpp \
-../src/gpuCustom.cpp \
+../src/filterImageGPU.cpp \
 ../src/main.cpp \
-../src/processImage.cpp \
 ../src/saveImage.cpp \
 ../src/searchImage.cpp \
 ../src/tarpSort.cpp \
 ../src/timing.cpp 
 
 OBJS += \
-./src/Image_old.o \
 ./src/ImgSource.o \
 ./src/Tarp.o \
-./src/filterImgGPU.o \
-./src/gpuCustom.o \
+./src/filterImageGPU.o \
 ./src/main.o \
-./src/processImage.o \
 ./src/saveImage.o \
 ./src/searchImage.o \
 ./src/tarpSort.o \
 ./src/timing.o 
 
 CPP_DEPS += \
-./src/Image_old.d \
 ./src/ImgSource.d \
 ./src/Tarp.d \
-./src/filterImgGPU.d \
-./src/gpuCustom.d \
+./src/filterImageGPU.d \
 ./src/main.d \
-./src/processImage.d \
 ./src/saveImage.d \
 ./src/searchImage.d \
 ./src/tarpSort.d \

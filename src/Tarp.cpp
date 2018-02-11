@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "gpuCustom.h"
 #include <string>
 #include <tuple>
 #include <algorithm>

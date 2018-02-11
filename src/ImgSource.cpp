@@ -92,6 +92,7 @@ Image ImgSource::getImage()
 
 		Mat filesystemImage;
 		filesystemImage = imread(this->filePaths.front(), CV_LOAD_IMAGE_COLOR); //Read
+		cout << this->filePaths.front() << endl;
 
 
 		if(filesystemImage.empty())

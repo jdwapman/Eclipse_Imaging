@@ -8,25 +8,22 @@
 #include <iostream> //Input/output library
 #include <vector>
 #include <string>
-#include <algorithm> //For sorting
+#include <ctime>
+
 #include <opencv2/opencv.hpp> //OpenCV library
-#include "Tarp.h"
-#include "colors.h"
-#include "timing.h"
-#include <future>
-#include <chrono>
+
 
 #include "boost/filesystem.hpp"
 #include "Image.h"
 
-void saveImage(Image img, int numImages)
+void saveImage(Image img, int numImages, string cameraSavePath)
 {
 
 	string savePath = img.imgPath;
 
 	if(img.imgPath == "") //Save numerically
 	{
-		path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Output_Images/Camera_Images/img_") + to_string(numImages) + ".jpg");
+		path p(cameraSavePath + string("/img_") + to_string(numImages) + ".jpg");
 		savePath = p.string();
 	}
 	else //Save with original filename in output folder

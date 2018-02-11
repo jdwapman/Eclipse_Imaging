@@ -10,7 +10,6 @@
 
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "gpuCustom.h"
 #include <string>
 
 using namespace std;

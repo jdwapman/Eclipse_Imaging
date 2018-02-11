@@ -1,21 +1,17 @@
-src/main.o: ../src/main.cpp ../src/filterImgGPU.h ../src/Image.h \
- ../src/colors.h ../src/ImgSource.h ../src/timing.h ../src/searchImage.h \
- ../src/saveImage.h ../src/Tarp.h ../src/gpuCustom.h
-
-../src/filterImgGPU.h:
-
-../src/Image.h:
-
-../src/colors.h:
+src/main.o: ../src/main.cpp ../src/ImgSource.h ../src/colors.h \
+ ../src/Image.h ../src/filterImageGPU.h ../src/saveImage.h \
+ ../src/searchImage.h ../src/timing.h
 
 ../src/ImgSource.h:
 
-../src/timing.h:
+../src/colors.h:
 
-../src/searchImage.h:
+../src/Image.h:
+
+../src/filterImageGPU.h:
 
 ../src/saveImage.h:
 
-../src/Tarp.h:
+../src/searchImage.h:
 
-../src/gpuCustom.h:
+../src/timing.h:

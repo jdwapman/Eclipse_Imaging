@@ -4,22 +4,34 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+../src/ImgSource.cpp \
 ../src/Tarp.cpp \
-../src/gpuCustom.cpp \
+../src/filterImageGPU.cpp \
 ../src/main.cpp \
-../src/tarpSort.cpp 
+../src/saveImage.cpp \
+../src/searchImage.cpp \
+../src/tarpSort.cpp \
+../src/timing.cpp 
 
 OBJS += \
+./src/ImgSource.o \
 ./src/Tarp.o \
-./src/gpuCustom.o \
+./src/filterImageGPU.o \
 ./src/main.o \
-./src/tarpSort.o 
+./src/saveImage.o \
+./src/searchImage.o \
+./src/tarpSort.o \
+./src/timing.o 
 
 CPP_DEPS += \
+./src/ImgSource.d \
 ./src/Tarp.d \
-./src/gpuCustom.d \
+./src/filterImageGPU.d \
 ./src/main.d \
-./src/tarpSort.d 
+./src/saveImage.d \
+./src/searchImage.d \
+./src/tarpSort.d \
+./src/timing.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

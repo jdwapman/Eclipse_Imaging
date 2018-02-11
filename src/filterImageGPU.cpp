@@ -24,7 +24,6 @@
 #include <chrono>
 
 #include "boost/filesystem.hpp"
-#include "Image_old.h"
 #include "Image.h"
 
 using namespace std;

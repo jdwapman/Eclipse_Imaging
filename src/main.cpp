@@ -86,6 +86,23 @@ int main(int argc, char** argv )
 
 	}
 
+	/*----- CREATE CAMERA OUTPUT FOLDER -----*/
+	//Get Date
+	time_t t = time(0);
+	struct tm * now = localtime(&t);
+
+	int year = now->tm_year + 1900;
+	int mon = now->tm_mon + 1;
+	int day = now->tm_mday;
+
+	int hour = now->tm_hour;
+	int min = now->tm_min;
+	int sec = now->tm_sec;
+
+	string cameraSaveFolder = to_string(year) + "-" + to_string(mon) + "-" + to_string(day) + "_" + to_string(hour) + ":" + to_string(min) + ":" + to_string(sec);
+	string cameraSavePath((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Output_Images/Camera_Images/") + cameraSaveFolder);
+	create_directory(cameraSavePath);
+
 	/*----- SET UP IMAGE SOURCE -----*/
 	ImgSource *src1;
 
@@ -115,7 +132,7 @@ int main(int argc, char** argv )
 	while(run)
 	{
 		Image cameraImage1 = src1->getImage();
-		printTime("Get Image", stepTime);
+
 
 		if(!cameraImage1.valid)
 			run = false;
@@ -123,6 +140,9 @@ int main(int argc, char** argv )
 
 		if(run)
 		{
+
+			printTime("Get Image", stepTime);
+
 			numImages++;
 			Image filteredImage1 = filterImageGPU(cameraImage1, scale);
 			printTime("Filter Image", stepTime);
@@ -131,7 +151,7 @@ int main(int argc, char** argv )
 			printTime("Search Image", stepTime);
 
 			Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
-			saveImage(contourImage1, numImages);
+			saveImage(contourImage1, numImages, cameraSavePath);
 			printTime("Save Image", stepTime);
 		}
 
