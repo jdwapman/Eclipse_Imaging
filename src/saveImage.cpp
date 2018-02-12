@@ -70,7 +70,7 @@ Image drawImageContours(Image img, vector<vector<Point> > contours, double scale
 	for(unsigned int i = 0; i< contours.size(); i++ )
 	{
 		if(contours[i].size() > 0){
-			drawContours(drawImg.img, contours, i, color[i], 20, 8);
+			drawContours(drawImg.img, contours, i, color[i], 5, 8);
 //			rectangle( drawImg, boundRect[i].tl(), boundRect[i].br(), color[i], 10, 8, 0 );
 		}
 	}

@@ -36,7 +36,7 @@ using namespace boost::filesystem;
 
 
 /*======== IMAGE SOURCE LOCATION =======*/
-const bool readCamera = true;
+const bool readCamera = false;
 
 int main(int argc, char** argv )
 {
@@ -57,7 +57,9 @@ int main(int argc, char** argv )
 
 	//Filesystem sources
 	//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos")); //Can select smaller folder
+	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos/Nic_2")); //Can select smaller folder
 
 
 	/*----- INITIALIZE CAMERA -----*/
@@ -116,7 +118,7 @@ int main(int argc, char** argv )
 	}
 
 
-	double scale = 1.0/4.0;
+	double scale = 1.0/1.0;
 
 	//Start timer
 	TickMeter stepTime;

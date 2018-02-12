@@ -6,5 +6,7 @@ Release/Target_Detection
 Release/src/*.o
 /Debug/*
 /Release/*
+Input_Launch_Videos/*
+Output_Launch_Videos/*
 
 /Debug/

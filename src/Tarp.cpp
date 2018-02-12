@@ -222,7 +222,7 @@ vector< tuple<double, unsigned int> > Tarp::findTarpAreas(vector<vector<Point> >
 
 		if(area < 200) //Modify based on height
 		{
-			tarpValid[i] = false;
+			//tarpValid[i] = false;
 		}
 
 	}

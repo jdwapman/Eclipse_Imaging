@@ -213,8 +213,11 @@ void ImgSource::getFileImages()
 {
 	recursive_directory_iterator end_itr;
 
+
 	for (recursive_directory_iterator itr(this->folderPath); itr != end_itr; ++itr)
 	{
+
+
 		//Path strings
 		string currentFilePath = itr->path().string();
 		string currentFileName = itr->path().filename().string();
@@ -233,6 +236,7 @@ void ImgSource::getFileImages()
 		}
 
 		/*----- CALIBRATE -----*/
+
 		color_data imgColors = this->getFileColors(itr->path()); //Read colors from text file in folder. Inefficient, but easy and only used during testing from filesystem.
 
 		//If not a jpeg, skip to next file
@@ -244,6 +248,7 @@ void ImgSource::getFileImages()
 
 		this->filePaths.push(currentFilePath);
 		this->colors.push(imgColors);
+
 
 	}
 
