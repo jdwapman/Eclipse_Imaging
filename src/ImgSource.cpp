@@ -33,6 +33,8 @@ ImgSource::ImgSource(VideoCapture cam)
 
 	this->cam = cam; //OpenCV camera object
 
+	this->readVideo = true;
+
 }
 
 //Filesystem source constructor
@@ -42,8 +44,21 @@ ImgSource::ImgSource(path folderPath)
 
 	this->folderPath = folderPath;
 
+	this->readVideo = false;
+
 	//Add all images and colors to queue
 	this->getFileImages();
+}
+
+ImgSource::ImgSource(VideoCapture video, path videoPath)
+{
+	this->readCamera = false;
+
+	this->readVideo = true;
+
+	this->videoPath = videoPath;
+
+	this->cam = video;
 }
 
 //Destructor. Unused.
@@ -82,33 +97,60 @@ Image ImgSource::getImage()
 	}
 	else //Read from filesystem
 	{
-		//Import image. imread imports in BGR format.
 
-		if(filePaths.empty()) //Check to see if there are any more images to import
+
+		if(readVideo)
 		{
-			img.valid = false;
-			return img;
+			Mat capture;
+
+			//Read image from camera
+			this->cam >> capture;
+
+			color_data c; //Create default color variable. Will need to implement pre-flight calibration
+
+			if(capture.empty())
+			{
+				cout << "No video available" << endl;
+				img.valid = false;
+			}
+			else
+			{
+				img.img = capture;
+				img.imgColors = c;
+				img.imgPath = "";
+				img.valid = true;
+			}
 		}
-
-		Mat filesystemImage;
-		filesystemImage = imread(this->filePaths.front(), CV_LOAD_IMAGE_COLOR); //Read
-		cout << this->filePaths.front() << endl;
-
-
-		if(filesystemImage.empty())
+		else //Read series of images
 		{
-			cout << "No image file available" << endl;
-			img.valid = false;
-		}
-		else
-		{
-			img.img = filesystemImage;
-			img.imgColors = this->colors.front();
-			img.imgPath = this->filePaths.front();
-			img.valid = true;
+			//Import image. imread imports in BGR format.
 
-			this->filePaths.pop(); //Remove path from queue
-			this->colors.pop();
+			if(filePaths.empty()) //Check to see if there are any more images to import
+			{
+				img.valid = false;
+				return img;
+			}
+
+			Mat filesystemImage;
+			filesystemImage = imread(this->filePaths.front(), CV_LOAD_IMAGE_COLOR); //Read
+			cout << this->filePaths.front() << endl;
+
+
+			if(filesystemImage.empty())
+			{
+				cout << "No image file available" << endl;
+				img.valid = false;
+			}
+			else
+			{
+				img.img = filesystemImage;
+				img.imgColors = this->colors.front();
+				img.imgPath = this->filePaths.front();
+				img.valid = true;
+
+				this->filePaths.pop(); //Remove path from queue
+				this->colors.pop();
+			}
 		}
 	}
 

@@ -31,6 +31,7 @@ class ImgSource
 
 	//Read Path
 	path folderPath;
+	path videoPath;
 
 	//Functions to read from filesystem
 	void getFileImages();
@@ -41,11 +42,13 @@ class ImgSource
 	queue<color_data> colors;
 
 	bool readCamera;
+	bool readVideo;
 
 public:
 
 	ImgSource(VideoCapture cam);
 	ImgSource(path folderPath);
+	ImgSource(VideoCapture video, path videoPath);
 
 	virtual ~ImgSource();
 

@@ -42,10 +42,7 @@ Image drawImageContours(Image img, vector<vector<Point> > contours, double scale
 
 	Image drawImg = img;
 
-	vector<vector<Point> > contours_poly( contours.size() );
 	vector<Rect> boundRect( contours.size() );
-	vector<Point2f>center( contours.size() );
-	vector<float>radius( contours.size() );
 
 	for(unsigned int i = 0; i < contours.size(); i++ )
 	 {
@@ -53,6 +50,7 @@ Image drawImageContours(Image img, vector<vector<Point> > contours, double scale
 			boundRect[i] = boundingRect( Mat(contours[i]) );
 		}
 	 }
+
 
 	//Draw contours on image.
 	const Scalar color[3] = {Scalar(50,0,0),Scalar(0,0,255),Scalar(24,130,0)};

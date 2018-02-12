@@ -17,6 +17,8 @@
 
 //OpenCV
 #include <opencv2/opencv.hpp> //OpenCV library
+#include <opencv2/tracking.hpp>
+#include <opencv2/core/ocl.hpp>
 
 //Source Files
 #include "ImgSource.h"
@@ -101,9 +103,9 @@ int main(int argc, char** argv )
 	int min = now->tm_min;
 	int sec = now->tm_sec;
 
-	string cameraSaveFolder = to_string(year) + "-" + to_string(mon) + "-" + to_string(day) + "_" + to_string(hour) + ":" + to_string(min) + ":" + to_string(sec);
-	string cameraSavePath((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Output_Images/Camera_Images/") + cameraSaveFolder);
-	create_directory(cameraSavePath);
+	string videoSaveFolder = to_string(year) + "-" + to_string(mon) + "-" + to_string(day) + "_" + to_string(hour) + ":" + to_string(min) + ":" + to_string(sec);
+	string videoSavePath((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Output_Images/Camera_Images/") + videoSaveFolder);
+	create_directory(videoSavePath);
 
 	/*----- SET UP IMAGE SOURCE -----*/
 	ImgSource *src1;
@@ -114,7 +116,16 @@ int main(int argc, char** argv )
 	}
 	else
 	{
-		src1 = new ImgSource(p);
+		//src1 = new ImgSource(p);
+		path vp = (getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos/Nic_2/YDXJ0439.mp4");
+		videoSavePath = vp.parent_path().string();
+
+		size_t index = 0;
+		index = videoSavePath.find("Input", index); //TODO: Separate imagePath, saveImagePath
+		videoSavePath.replace(index,5,"Output"); //Replace "Input" with "Output
+
+		VideoCapture vid(vp.string());
+		src1 = new ImgSource(vid, vp);
 	}
 
 
@@ -130,6 +141,14 @@ int main(int argc, char** argv )
 	/*------CAPTURE, PROCESS, AND SAVE IMAGES-----*/
 	bool run = true;
 	int numImages = 0;
+
+
+	//Create Tracker
+	Ptr<Tracker> tracker;
+	tracker = TrackerMedianFlow::create();
+
+
+	bool init = true;
 
 	while(run)
 	{
@@ -152,8 +171,38 @@ int main(int argc, char** argv )
 			vector<vector<Point> > contours1 = searchImage(filteredImage1);
 			printTime("Search Image", stepTime);
 
+			//Track Image
+			vector<Rect> boundRect( contours1.size() );
+
+			for(unsigned int i = 0; i < contours1.size(); i++ )
+			 {
+				if(contours1[i].size() > 0){
+					boundRect[i] = boundingRect( Mat(contours1[i]) );
+				}
+			 }
+
+			//Tarp bounding boxes using contours
+//			Rect2d bblue(boundRect[0].tl, boundRect[0].br());
+//			Rect2d bpink(boundRect[1].tl, boundRect[1].br());
+//			Rect2d byellow(boundRect[2].tl, boundRect[2].br());
+
+
+//			if(init) //If first iteration, initialize to contours's rectangle
+//			{
+//				tracker->init(filteredImage1.img, bblue);
+//				init = false;
+//			}
+
+
+
+
 			Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
-			saveImage(contourImage1, numImages, cameraSavePath);
+
+
+
+
+
+			saveImage(contourImage1, numImages, videoSavePath);
 			printTime("Save Image", stepTime);
 		}
 
