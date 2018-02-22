@@ -23,7 +23,9 @@ void saveImage(Image img, int numImages, string cameraSavePath)
 
 	if(img.imgPath == "") //Save numerically
 	{
-		path p(cameraSavePath + string("/img_") + to_string(numImages) + ".jpg");
+		stringstream num;
+		num << setw(7) << setfill('0') << numImages;
+		path p(cameraSavePath + string("/img_") + num.str() + ".jpg");
 		savePath = p.string();
 	}
 	else //Save with original filename in output folder

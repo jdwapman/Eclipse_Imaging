@@ -186,8 +186,8 @@ int main(int argc, char** argv )
 			Image contourImage1 = cameraImage1;
 
 			//Initialize the tracker if there is a valid tarp
-			if(1) //Disable tracking detection
-			//if((contours1[0].size() != 0) && first == true) //If there is a blue tarp
+//			if(1) //Disable tracking detection
+			if((contours1[0].size() != 0) && first == true) //If there is a blue tarp
 			{
 
 				cout << contours1[0].size() << endl;
