@@ -59,6 +59,9 @@ ImgSource::ImgSource(VideoCapture video, path videoPath)
 	this->videoPath = videoPath;
 
 	this->cam = video;
+
+	color_data videoColors = this->getFileColors(videoPath);
+	this->colors.push(videoColors);
 }
 
 //Destructor. Unused.
@@ -106,7 +109,6 @@ Image ImgSource::getImage()
 			//Read image from camera
 			this->cam >> capture;
 
-			color_data c; //Create default color variable. Will need to implement pre-flight calibration
 
 			if(capture.empty())
 			{
@@ -116,7 +118,7 @@ Image ImgSource::getImage()
 			else
 			{
 				img.img = capture;
-				img.imgColors = c;
+				img.imgColors = this->colors.front();
 				img.imgPath = "";
 				img.valid = true;
 			}
