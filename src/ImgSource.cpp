@@ -194,7 +194,7 @@ color_data ImgSource::getFileColors(path currentFilePath)
 
 	if(exists(calibrationPath))
 	{
-		ifstream f;
+		std::ifstream f;
 		f.open(calibrationPath);
 
 		while (f)
