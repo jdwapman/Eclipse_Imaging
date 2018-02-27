@@ -59,10 +59,10 @@ int main(int argc, char** argv )
 
 
 	//Filesystem sources
-//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images"));
-	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
-//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos")); //Can select smaller folder
-//	path p((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos/Nic_2")); //Can select smaller folder
+//	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images"));
+	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+//	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos")); //Can select smaller folder
+//	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos/Nic_2")); //Can select smaller folder
 
 
 	/*----- INITIALIZE CAMERA -----*/
@@ -105,7 +105,7 @@ int main(int argc, char** argv )
 	int sec = now->tm_sec;
 
 	string videoSaveFolder = to_string(year) + "-" + to_string(mon) + "-" + to_string(day) + "_" + to_string(hour) + ":" + to_string(min) + ":" + to_string(sec);
-	string videoSavePath((getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Output_Images/Camera_Images/") + videoSaveFolder);
+	string videoSavePath((getenv("HOME")) + string("/Eclipse/Target_Detection/Output_Images/Camera_Images/") + videoSaveFolder);
 	create_directory(videoSavePath);
 
 	/*----- SET UP IMAGE SOURCE -----*/
@@ -119,20 +119,20 @@ int main(int argc, char** argv )
 	{
 
 		//Uncomment to read images from source folder
-//		src1 = new ImgSource(p);
+		src1 = new ImgSource(p);
 
 
 		//Uncomment to read images from video
 //		path vp = (getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos/Nic_2/YDXJ0439.mp4");
-		path vp = (getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos/Backyard/out.mp4");
-		videoSavePath = vp.parent_path().string();
-
-		size_t index = 0;
-		index = videoSavePath.find("Input", index); //TODO: Separate imagePath, saveImagePath
-		videoSavePath.replace(index,5,"Output"); //Replace "Input" with "Output
-
-		VideoCapture vid(vp.string());
-		src1 = new ImgSource(vid, vp);
+//		path vp = (getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos/Backyard/out.mp4");
+//		videoSavePath = vp.parent_path().string();
+//
+//		size_t index = 0;
+//		index = videoSavePath.find("Input", index); //TODO: Separate imagePath, saveImagePath
+//		videoSavePath.replace(index,5,"Output"); //Replace "Input" with "Output
+//
+//		VideoCapture vid(vp.string());
+//		src1 = new ImgSource(vid, vp);
 	}
 
 
@@ -186,12 +186,12 @@ int main(int argc, char** argv )
 			Image contourImage1 = cameraImage1;
 
 			//Initialize the tracker if there is a valid tarp
-//			if(1) //Disable tracking detection
-			if((contours1[0].size() != 0) && first == true) //If there is a blue tarp
+			if(1) //Disable tracking detection
+//			if((contours1[0].size() != 0) && first == true) //If there is a blue tarp
 			{
 
-				cout << contours1[0].size() << endl;
-				cout << first << endl;
+				//cout << contours1[0].size() << endl;
+				//cout << first << endl;
 				//Track Image
 				vector<Rect> boundRect( contours1.size() ); //Vector of bounding rectangles for each tarp
 
