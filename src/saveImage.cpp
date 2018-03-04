@@ -21,7 +21,7 @@ void saveImage(Image img, int numImages, string cameraSavePath)
 
 	string savePath = img.imgPath;
 
-	if(img.imgPath == "") //Save numerically
+	if(img.imgPath == "") //No path from filesystem. Save by number in folder
 	{
 		stringstream num;
 		num << setw(7) << setfill('0') << numImages;

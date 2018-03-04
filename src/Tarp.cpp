@@ -74,9 +74,6 @@ vector<vector<Point> > Tarp::findTarpContours(const Mat& imgHSV)
 //	imshow("Thresh Image", cpuThresh);
 //	waitKey(0); //Wait for any key press before closing window
 
-	//TODO: try replacing with cpu inrange
-
-	//Mat cpuThresh(gpuThresh); //Save to CPU
 
 	vector<vector<Point> > contours, contours_approx;
 	vector<Vec4i> hierarchy;
@@ -244,7 +241,7 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 
 		tarpVertices[i] = make_tuple(size, i);
 
-		if((size > 6) || (size <= 3))
+		if((size > 6) || (size <= 2))
 		{
 			tarpValid[i] = false;
 		}
@@ -331,7 +328,7 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours, tarpValid);
 
 	//Get tarp histogram
-	vector< tuple<double, unsigned int> > tarpDominantColor = findTarpHist(tarpContours, splitImgHSV, tarpValid);
+	//vector< tuple<double, unsigned int> > tarpDominantColor = findTarpHist(tarpContours, splitImgHSV, tarpValid);
 
 	//Get tarp mean, stddev
 	//vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanStddev = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
@@ -341,7 +338,7 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	for (unsigned int i = 0; i < numContours; i++)
 	{
 		if(tarpValid[i])
-			tarpValid[i] = isContourConvex(tarpContours[i]);
+			//tarpValid[i] = isContourConvex(tarpContours[i]);
 
 
 		tarpConvexity[i] = isContourConvex(tarpContours[i]);
@@ -372,7 +369,7 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 		{
 			bestTarp = tarpContours[ get<1>(tarpAreas[i]) ];
 
-			this->dominantColor = get<0>(tarpDominantColor[get<1>(tarpAreas[i])]);
+			//this->dominantColor = get<0>(tarpDominantColor[get<1>(tarpAreas[i])]);
 //
 //			//Write information
 //			cout << "Area: " << get<0>(tarpAreas[get<1>(tarpAreas[i])]) << endl;
