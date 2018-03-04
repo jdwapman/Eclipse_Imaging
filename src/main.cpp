@@ -180,7 +180,6 @@ int main(int argc, char** argv )
 			printTime("Search Image", stepTime);
 
 
-
 			Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
 
 

@@ -8,6 +8,6 @@ Release/src/*.o
 /Release/*
 Input_Launch_Videos/*
 Output_Launch_Videos/*
-
+*.d
 /Debug/
 /Release/
