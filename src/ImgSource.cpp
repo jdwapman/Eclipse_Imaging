@@ -83,7 +83,8 @@ Image ImgSource::getImage()
 		//Read image from camera
 		this->cam >> capture;
 
-		color_data c; //Create default color variable. Will need to implement pre-flight calibration
+		path cameraColorsPath = (getenv("HOME")) + string("/Eclipse/Target_Detection/colors.txt");
+		color_data cameraColors = this->getFileColors(cameraColorsPath);
 
 		if(capture.empty())
 		{
@@ -93,7 +94,7 @@ Image ImgSource::getImage()
 		else
 		{
 			img.img = capture;
-			img.imgColors = c;
+			img.imgColors = cameraColors;
 			img.imgPath = "";
 			img.valid = true;
 		}

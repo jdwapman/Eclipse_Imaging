@@ -79,7 +79,7 @@ Image filterImageGPU(Image& img, double scale)
 	printTime("     Convert & Split", stepTime);
 
 	//Blur image (Must use CPU for a 3-channel image)
-	boxFilter(matHSV,matHSV,-1,Size(12,12));
+	boxFilter(matHSV,matHSV,-1,Size(5,5));
 
 	printTime("     Blur", stepTime);
 

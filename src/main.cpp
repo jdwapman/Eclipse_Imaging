@@ -38,7 +38,7 @@ using namespace boost::filesystem;
 
 
 /*======== IMAGE SOURCE LOCATION =======*/
-const string SOURCE = "FILE"; //FILE, VIDEO, CAMERA
+const string SOURCE = "CAMERA"; //FILE, VIDEO, CAMERA
 
 int main(int argc, char** argv )
 {
@@ -60,10 +60,10 @@ int main(int argc, char** argv )
 	//Filesystem sources
 //	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images"));
 //	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images/1-6 [Labeled]"));
-//	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
+	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
 //	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos")); //Can select smaller folder
 //	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos/Nic_2")); //Can select smaller folder
-	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images/See3Cam/2-16/Manual")); //Can select smaller folder
+//	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images/See3Cam/2-16/Manual")); //Can select smaller folder
 
 
 	/*----- INITIALIZE IMAGE SOURCE -----*/
@@ -108,8 +108,6 @@ int main(int argc, char** argv )
 		savePath = ((getenv("HOME")) + string("/Eclipse/Target_Detection/Output_Images/Camera_Images/") + saveFolder);
 		create_directory(savePath);
 
-		delete(now);
-
 	}
 
 
@@ -126,8 +124,8 @@ int main(int argc, char** argv )
 	}
 	else if(SOURCE == "VIDEO")
 	{
-		path vp = (getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos/Nic_2/YDXJ0439.mp4");
-//		path vp = (getenv("HOME")) + string("/Eclipse_Workspace/Target_Detection/Input_Launch_Videos/Backyard/out.mp4");
+		path vp = (getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos/flight_4/flight_4.mp4");
+//		path vp = (getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos/Backyard/out.mp4");
 		savePath = vp.parent_path().string();
 
 		size_t index = 0;
@@ -144,7 +142,7 @@ int main(int argc, char** argv )
 	}
 
 
-	double scale = 1.0/4.0;
+	double scale = 1.0/1.0;
 
 	//Start timer
 	TickMeter stepTime;
@@ -156,6 +154,7 @@ int main(int argc, char** argv )
 	/*------CAPTURE, PROCESS, AND SAVE IMAGES-----*/
 	bool run = true;
 	int numImages = 0;
+	int i = 0;
 
 	while(run)
 	{
@@ -174,18 +173,27 @@ int main(int argc, char** argv )
 			printTime("Get Image", stepTime);
 
 			numImages++;
-			Image filteredImage1 = filterImageGPU(cameraImage1, scale);
-			printTime("Filter Image", stepTime);
 
-			vector<vector<Point> > contours1 = searchImage(filteredImage1);
-			printTime("Search Image", stepTime);
+				if(i == 8)
+				{
+				Image filteredImage1 = filterImageGPU(cameraImage1, scale);
+				printTime("Filter Image", stepTime);
+
+				vector<vector<Point> > contours1 = searchImage(filteredImage1);
+				printTime("Search Image", stepTime);
 
 
-			Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
+				Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
 
 
-			saveImage(contourImage1, numImages, savePath);
-			printTime("Save Image", stepTime);
+				saveImage(contourImage1, numImages, savePath);
+				printTime("Save Image", stepTime);
+				i = 0;
+				continue;
+			}
+
+			i += 1;
+
 		}
 
 		cout << endl << endl;

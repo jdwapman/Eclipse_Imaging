@@ -182,15 +182,15 @@ vector< tuple<double, unsigned int> > Tarp::findTarpHist(vector<vector<Point> > 
 
 			if(numPeaks > 1)
 			{
-				tarpValid[i] = false;
+				//tarpValid[i] = false;
 			}
 
 			int color_offset = abs(this->hsv_ideal[0] - maxLoc.y); //Checks difference in HSV value
 //			cout << this->hsv_ideal[0] << endl;
 //			cout << color_offset << endl << endl;
-			if(color_offset > 5)
+			if(color_offset > 10)
 			{
-				tarpValid[i] = false;
+				//tarpValid[i] = false;
 			}
 
 			//cout << "Peaks: " << i << ": " << numPeaks << endl;
@@ -252,7 +252,7 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 		//Reject tarps based on number of vertices
 		if((size > 6) || (size < 4))
 		{
-			tarpValid[i] = false;
+			//tarpValid[i] = false;
 		}
 
 	}
@@ -260,62 +260,6 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 	return tarpVertices;
 }
 
-vector<Point> Tarp::findBestTarpORB(Mat& imgHSV)
-{
-	vector<Point> o;
-
-	//Create ORB detector
-
-	TickMeter tm;
-	Mat img = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/src/img.jpg");
-	Mat pinkTemp = imread("/home/jwapman/Eclipse_Workspace/Target_Detection/src/Pink.jpg");
-
-	Ptr<ORB> orbPtr = ORB::create();
-
-	vector<KeyPoint> keypointsTemp, keypointsImg;
-	Mat descriptorsTemp, descriptorsImg;
-
-	//Threshold template
-	Mat templateThresh;
-	Mat pinkHSV;
-	cvtColor(pinkTemp, pinkHSV, CV_BGR2HSV,0);
-	Scalar low = {(double)this->hsv_low[0], (double)this->hsv_low[1], (double)this->hsv_low[2]};
-	Scalar high = {(double)this->hsv_high[0], (double)this->hsv_high[1], (double)this->hsv_high[2]};
-	inRange(pinkHSV, low, high, templateThresh);
- 	orbPtr->detectAndCompute(templateThresh, Mat(), keypointsTemp, descriptorsTemp);
-
-
-
-
- 	//Threshold input images
- 	Mat cpuThresh;
- 	Mat i_HSV;
- 	cvtColor(img, i_HSV, CV_BGR2HSV,0);
-
-	inRange(i_HSV, low, high, cpuThresh);
-
-
-
- 	orbPtr->detectAndCompute(cpuThresh, Mat(), keypointsImg, descriptorsImg);
-
-
- 	Ptr<DescriptorMatcher> d = DescriptorMatcher::create(4);
- 	vector<DMatch> matches;
- 	d->match(descriptorsTemp, descriptorsImg, matches);
-
- 	//Draw
- 	Mat imgMatches;
- 	drawMatches(pinkTemp, keypointsTemp, img, keypointsImg, matches, imgMatches);
-
-
- 	namedWindow("Matches",WINDOW_NORMAL);
- 			resizeWindow("Matches",600,600);
- 	imshow("Matches", imgMatches);
- 	waitKey(0);
-
-	return o;
-
-}
 
 void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp)
 {
