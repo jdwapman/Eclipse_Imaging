@@ -38,7 +38,7 @@ using namespace boost::filesystem;
 
 
 /*======== IMAGE SOURCE LOCATION =======*/
-const string SOURCE = "CAMERA"; //FILE, VIDEO, CAMERA
+const string SOURCE = "VIDEO"; //FILE, VIDEO, CAMERA
 
 int main(int argc, char** argv )
 {
@@ -124,7 +124,7 @@ int main(int argc, char** argv )
 	}
 	else if(SOURCE == "VIDEO")
 	{
-		path vp = (getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos/flight_4/flight_4.mp4");
+		path vp = (getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos/flight_3/flight_3.mp4");
 //		path vp = (getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos/Backyard/out.mp4");
 		savePath = vp.parent_path().string();
 
@@ -174,8 +174,8 @@ int main(int argc, char** argv )
 
 			numImages++;
 
-				if(i == 8)
-				{
+				//if(i == 8)
+				//{
 				Image filteredImage1 = filterImageGPU(cameraImage1, scale);
 				printTime("Filter Image", stepTime);
 
@@ -190,7 +190,7 @@ int main(int argc, char** argv )
 				printTime("Save Image", stepTime);
 				i = 0;
 				continue;
-			}
+			//}
 
 			i += 1;
 

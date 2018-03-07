@@ -281,10 +281,10 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours, tarpValid);
 
 	//Get tarp histogram
-	vector< tuple<double, unsigned int> > tarpDominantColor = findTarpHist(tarpContours, splitImgHSV, tarpValid);
+	//vector< tuple<double, unsigned int> > tarpDominantColor = findTarpHist(tarpContours, splitImgHSV, tarpValid);
 
 	//Get tarp mean, stddev
-	vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanStddev = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
+	//vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanStddev = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
 
 	//Get tarp convexity
 	vector<bool> tarpConvexity(numContours, false);
