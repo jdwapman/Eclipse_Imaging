@@ -38,7 +38,7 @@ using namespace boost::filesystem;
 
 
 /*======== IMAGE SOURCE LOCATION =======*/
-const string SOURCE = "VIDEO"; //FILE, VIDEO, CAMERA
+const string SOURCE = "CAMERA"; //FILE, VIDEO, CAMERA
 
 int main(int argc, char** argv )
 {
@@ -174,6 +174,8 @@ int main(int argc, char** argv )
 
 			numImages++;
 
+			cout << "Iteration: " << numImages << endl;
+
 				//if(i == 8)
 				//{
 				Image filteredImage1 = filterImageGPU(cameraImage1, scale);
@@ -189,10 +191,16 @@ int main(int argc, char** argv )
 				saveImage(contourImage1, numImages, savePath);
 				printTime("Save Image", stepTime);
 				i = 0;
-				continue;
+				//continue;
 			//}
 
 			i += 1;
+
+			if(numImages == 50)
+			{
+				run = false;
+				cout << "Hi Eden" << endl;
+			}
 
 		}
 
