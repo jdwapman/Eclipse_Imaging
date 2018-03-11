@@ -357,6 +357,52 @@ void filterAngles(vector<vector<Point> > tarpContours, vector<bool>& tarpValid)
 	}
 }
 
+void filterEdgeContrast(vector<vector<Point> > tarpContours, vector<Mat> splitImgHSV, vector<bool>& tarpValid)
+{
+	for(unsigned int i = 0; i < tarpContours.size(); i++)
+	{
+		if(tarpValid[i] == true)
+		{
+			vector<vector<Point> > largeContour(1);
+			largeContour[0] = tarpContours[i];
+
+			for(unsigned int j = 0; j < largeContour.size(); j++) //Increase by 25%
+			{
+				largeContour[0][j].x = largeContour[0][j].x * 1.5;
+				largeContour[0][j].y = largeContour[0][j].y * 1.5;
+			}
+
+
+			//Get inner contour mean
+			Mat innerMask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
+
+			drawContours(innerMask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
+
+			Scalar innerMean;
+			Scalar innerStddev;
+			meanStdDev(splitImgHSV[0], innerMean, innerStddev, innerMask);
+
+			//Get outer contour mean
+			Mat outerMask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
+			drawContours(outerMask, largeContour, 0, Scalar(255), -1, 8); //Draw filled in mask. Only 1 contour
+			Mat diffMask = outerMask - innerMask;
+
+
+			Scalar outerMean;
+			Scalar outerStddev;
+			meanStdDev(splitImgHSV[0], outerMean, outerStddev, diffMask);
+
+			if(abs(outerMean.val[0] - innerMean.val[0]) < 5) //Reject if there isn't enough contrast
+			{
+				tarpValid[i] = false;
+			}
+
+
+		}
+
+	}
+}
+
 void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp)
 {
 
@@ -377,6 +423,8 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	filterSideLengths(tarpContours, tarpValid);
 
 	filterAngles(tarpContours, tarpValid);
+
+	filterEdgeContrast(tarpContours, splitImgHSV, tarpValid);
 
 	//Get tarp areas
 	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours, tarpValid);

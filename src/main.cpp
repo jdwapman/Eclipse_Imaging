@@ -43,7 +43,7 @@ int main(int argc, char** argv )
 {
 
 	/*======== IMAGE SOURCE LOCATION =======*/
-	string SOURCE = "FILE"; //FILE, VIDEO, CAMERA
+	string SOURCE = "VIDEO"; //FILE, VIDEO, CAMERA
 
 	int numCameras = 0;
 
@@ -208,6 +208,7 @@ int main(int argc, char** argv )
 
 	//End/count conditions
 	int numImages = 0;
+	int i = 0;
 
 	while(run)
 	{
@@ -225,24 +226,31 @@ int main(int argc, char** argv )
 		{
 
 			numImages++;
+			i++;
+			if(i == 8)
+			{
 
-			cout << "Image: " << numImages << endl;
-			printTime("Get Image", stepTime);
-			Image filteredImage1 = filterImageGPU(cameraImage1, scale);
-			printTime("Filter Image", stepTime);
+				cout << "Image: " << numImages << endl;
+				printTime("Get Image", stepTime);
+				Image filteredImage1 = filterImageGPU(cameraImage1, scale);
+				printTime("Filter Image", stepTime);
 
-			vector<vector<Point> > contours1 = searchImage(filteredImage1);
-			printTime("Search Image", stepTime);
-
-
-			Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
-
-
-			saveImage(contourImage1, numImages, savePath);
-			printTime("Save Image", stepTime);
+				vector<vector<Point> > contours1 = searchImage(filteredImage1);
+				printTime("Search Image", stepTime);
 
 
-			cout << endl << endl;
+				Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
+
+
+				saveImage(contourImage1, numImages, savePath);
+				printTime("Save Image", stepTime);
+				i = 0;
+
+				cout << endl << endl;
+			}
+
+
+
 
 		}
 
