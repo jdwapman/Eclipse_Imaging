@@ -332,8 +332,6 @@ vector<double> getAngles(vector<Point> points)
 	angles[2] = getAngle(points[2], points[3], points[0]);
 	angles[3] = getAngle(points[3], points[0], points[1]);
 
-	cout << angles[0] << endl;
-
 	return angles;
 }
 

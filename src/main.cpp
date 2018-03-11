@@ -172,14 +172,16 @@ int main(int argc, char** argv )
 		if(run)
 		{
 
-			printTime("Get Image", stepTime);
+
 
 			numImages++;
 
-			cout << "Iteration: " << numImages << endl;
+
 
 			if(i == 8)
 			{
+				cout << "Iteration: " << numImages << endl;
+				printTime("Get Image", stepTime);
 				Image filteredImage1 = filterImageGPU(cameraImage1, scale);
 				printTime("Filter Image", stepTime);
 
@@ -194,6 +196,7 @@ int main(int argc, char** argv )
 				printTime("Save Image", stepTime);
 				i = 0;
 				//continue;
+				cout << endl << endl;
 			}
 
 			i += 1;
@@ -202,7 +205,7 @@ int main(int argc, char** argv )
 
 		}
 
-		cout << endl << endl;
+
 
 	}
 
