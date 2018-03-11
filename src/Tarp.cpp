@@ -16,10 +16,13 @@
 #include <tuple>
 #include <algorithm>
 #include <iostream>
+#include "math.h"
 
 
 using namespace std;
 using namespace cv;
+
+#define PI 3.14159265
 
 Tarp::Tarp(string color, int* ideal, int* low, int* high)
 {
@@ -250,9 +253,9 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 		tarpVertices[i] = make_tuple(size, i);
 
 		//Reject tarps based on number of vertices
-		if((size > 6) || (size < 4))
+		if(size != 4)
 		{
-			//tarpValid[i] = false;
+			tarpValid[i] = false;
 		}
 
 	}
@@ -260,6 +263,101 @@ vector< tuple<unsigned int, unsigned int> > Tarp::findTarpVertices(vector<vector
 	return tarpVertices;
 }
 
+double length(Point p1, Point p2)
+{
+	return sqrt( pow((p2.x - p1.x),2) + pow((p2.y-p1.y),2) );
+}
+
+vector<double> getSideLengths(vector<Point> points)
+{
+	vector<double> lengths(4);
+
+	lengths[0] = length(points[0], points[1]);
+	lengths[1] = length(points[1], points[2]);
+	lengths[2] = length(points[2], points[3]);
+	lengths[3] = length(points[3], points[0]);
+
+	return lengths;
+}
+
+void filterSideLengths(vector<vector<Point> > tarpContours, vector<bool>& tarpValid)
+{
+
+
+	for(unsigned int i = 0; i < tarpContours.size(); i++)
+	{
+		if(tarpValid[i])
+		{
+			vector<double> lengths = getSideLengths(tarpContours[i]);
+
+			if(*min_element(lengths.begin(), lengths.end()) < 0.6 * (*max_element(lengths.begin(), lengths.end())))
+			{
+				tarpValid[i] = false;
+			}
+		}
+
+
+	}
+}
+
+double getAngle(Point a, Point b, Point c)
+{
+	//Finds the angle ABC using vectors BA, BC
+
+	double theta;
+
+	Point a_norm, b_norm, c_norm;
+
+	b_norm.x = 0;
+	b_norm.y = 0;
+
+
+	a_norm = a - b;
+	c_norm = c - b;
+
+	double a_mag = length(a_norm, b_norm);
+	double c_mag = length(c_norm, b_norm);
+
+	theta = acos(a_norm.ddot(c_norm)/(a_mag * c_mag)) * 180.0 / PI;
+
+	return theta;
+}
+
+vector<double> getAngles(vector<Point> points)
+{
+	vector<double> angles(4);
+
+	angles[0] = getAngle(points[0], points[1], points[2]);
+	angles[1] = getAngle(points[1], points[2], points[3]);
+	angles[2] = getAngle(points[2], points[3], points[0]);
+	angles[3] = getAngle(points[3], points[0], points[1]);
+
+	cout << angles[0] << endl;
+
+	return angles;
+}
+
+void filterAngles(vector<vector<Point> > tarpContours, vector<bool>& tarpValid)
+{
+	for(unsigned int i = 0; i < tarpContours.size(); i++)
+	{
+		if(tarpValid[i])
+		{
+			vector<double> angles = getAngles(tarpContours[i]);
+
+			for(unsigned int j = 0; j < 4; j++)
+			{
+				if(angles[j] > 120 || angles[j] < 60)
+				{
+					tarpValid[i] = false;
+				}
+			}
+
+		}
+
+
+	}
+}
 
 void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& bestTarp)
 {
@@ -277,6 +375,11 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	//Get number of tarp vertices
 	vector< tuple<unsigned int, unsigned int> > tarpVertices = findTarpVertices(tarpContours, tarpValid);
 
+	//Make sure only squares are selected
+	filterSideLengths(tarpContours, tarpValid);
+
+	filterAngles(tarpContours, tarpValid);
+
 	//Get tarp areas
 	vector< tuple<double, unsigned int> > tarpAreas = findTarpAreas(tarpContours, tarpValid);
 
@@ -287,16 +390,16 @@ void Tarp::findBestTarp(Mat& imgHSV, vector<Mat>& splitImgHSV, vector<Point>& be
 	//vector< tuple<Scalar, Scalar, unsigned int> > tarpMeanStddev = findTarpMeans(tarpContours, splitImgHSV, tarpValid);
 
 	//Get tarp convexity
-	vector<bool> tarpConvexity(numContours, false);
-	for (unsigned int i = 0; i < numContours; i++)
-	{
-		if(tarpValid[i])
-			tarpValid[i] = isContourConvex(tarpContours[i]);
-
-
-		tarpConvexity[i] = isContourConvex(tarpContours[i]);
-		//cout << isContourConvex(tarpContours[i]) << endl;
-	}
+//	vector<bool> tarpConvexity(numContours, false);
+//	for (unsigned int i = 0; i < numContours; i++)
+//	{
+//		if(tarpValid[i])
+//			tarpValid[i] = isContourConvex(tarpContours[i]);
+//
+//
+//		tarpConvexity[i] = isContourConvex(tarpContours[i]);
+//		//cout << isContourConvex(tarpContours[i]) << endl;
+//	}
 
 
 	/*----- Sort &  make decision -----*/
