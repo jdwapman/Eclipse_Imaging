@@ -104,9 +104,10 @@ int main(int argc, char** argv )
 		int min = now->tm_min;
 		int sec = now->tm_sec;
 
-		saveFolder = to_string(year) + "-" + to_string(mon) + "-" + to_string(day) + "_" + to_string(hour) + ":" + to_string(min) + ":" + to_string(sec);
+		saveFolder = "Cam1_" + to_string(year) + "-" + to_string(mon) + "-" + to_string(day) + "_" + to_string(hour) + ":" + to_string(min) + ":" + to_string(sec);
 		savePath = ((getenv("HOME")) + string("/Eclipse/Target_Detection/Output_Images/Camera_Images/") + saveFolder);
-		create_directory(savePath);
+		//savePath = (string("/media/nvidia/SD_TX1/Output_Images/Camera_Images/test/"));
+		//create_directory(savePath);
 
 	}
 
