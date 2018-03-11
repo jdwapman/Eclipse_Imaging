@@ -37,11 +37,26 @@ using namespace cv;
 using namespace boost::filesystem;
 
 
-/*======== IMAGE SOURCE LOCATION =======*/
-const string SOURCE = "VIDEO"; //FILE, VIDEO, CAMERA
+
 
 int main(int argc, char** argv )
 {
+
+	/*======== IMAGE SOURCE LOCATION =======*/
+	string SOURCE = "FILE"; //FILE, VIDEO, CAMERA
+
+	int numCameras = 0;
+
+	if(argc == 3) //Override default
+	{
+		SOURCE = "CAMERA";
+		numCameras = 1;
+	}
+	else if(argc == 4)
+	{
+		SOURCE = "CAMERA";
+		numCameras = 2;
+	}
 
 	/*----- INITIALIZATION -----*/
 
@@ -57,7 +72,9 @@ int main(int argc, char** argv )
 	cuda::resetDevice();
 
 
-	//Filesystem sources
+
+
+	//Filesystem sources (for testing)
 //	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images"));
 //	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images/1-6 [Labeled]"));
 	path p((getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Images/Selected_Images")); //Can select smaller folder
@@ -68,16 +85,35 @@ int main(int argc, char** argv )
 
 	/*----- INITIALIZE IMAGE SOURCE -----*/
 
-	VideoCapture cam1;
+	VideoCapture cam1, cam2;
 	string saveFolder, savePath;
 
 	if(SOURCE == "CAMERA")
 	{
+		//Attempt to open cameras
 		cam1.open(0);
 
-		if( !cam1.isOpened() )
+		if(numCameras == 2)
 		{
-			cout << "Could not initialize capturing\n";
+			cam2.open(1);
+		}
+
+		//Check camera status
+		if( (numCameras == 2) && !cam2.isOpened() ) //If camera 2 can't be opened
+		{
+			cout << "Could not initialize Camera 2" << endl;
+			numCameras = 1;
+		}
+
+		if(!cam1.isOpened()) //If camera 1 can't be opened
+		{
+			cout << "Could not initialize Camera 1" << endl;
+			numCameras = 0;
+		}
+
+		if(numCameras == 0)
+		{
+			cout << "No cameras detected" << endl;
 			return -1;
 		}
 
@@ -90,6 +126,21 @@ int main(int argc, char** argv )
 
 		double exp = 4; //Shutter speed? Use increments of 2x or 0.5x for full stops
 		cam1.set(CAP_PROP_EXPOSURE, exp/100.0);
+
+		//Initialize camera 2
+		if(numCameras == 2)
+		{
+			cam2.set(CAP_PROP_AUTO_EXPOSURE, 0.25); //Why 0.25? No idea, but it works
+
+			cam2.set(CAP_PROP_FRAME_WIDTH, 1920);
+			cam2.set(CAP_PROP_FRAME_HEIGHT, 1080);
+
+
+			double exp = 4; //Shutter speed? Use increments of 2x or 0.5x for full stops
+			cam2.set(CAP_PROP_EXPOSURE, exp/100.0);
+		}
+
+
 
 		/*----- CREATE CAMERA OUTPUT FOLDER -----*/
 		//Get Date
@@ -106,18 +157,19 @@ int main(int argc, char** argv )
 
 		saveFolder = "Cam1_" + to_string(year) + "-" + to_string(mon) + "-" + to_string(day) + "_" + to_string(hour) + ":" + to_string(min) + ":" + to_string(sec);
 		savePath = ((getenv("HOME")) + string("/Eclipse/Target_Detection/Output_Images/Camera_Images/") + saveFolder);
-		//savePath = (string("/media/nvidia/SD_TX1/Output_Images/Camera_Images/test/"));
-		//create_directory(savePath);
+
 
 	}
 
 
 	/*----- SET UP IMAGE SOURCE -----*/
-	ImgSource *src1;
+	ImgSource *src1 = 0;
+	ImgSource *src2 = 0;
 
 	if(SOURCE == "CAMERA")
 	{
 		src1 = new ImgSource(cam1);
+		src2 = new ImgSource(cam2);
 	}
 	else if(SOURCE == "FILE")
 	{
@@ -155,8 +207,7 @@ int main(int argc, char** argv )
 	bool run = true;
 
 	//End/count conditions
-	int numImages = 0; //Number of images to take with camera. Set to -1 for continuous
-	int i = 0;
+	int numImages = 0;
 
 	while(run)
 	{
@@ -166,42 +217,32 @@ int main(int argc, char** argv )
 		if(!cameraImage1.valid)
 		{
 			run = false;
-			cout << "No Valid Image" << endl;
+			cout << "No image" << endl;
+			break;
 		}
 
 		if(run)
 		{
 
-
-
 			numImages++;
 
+			cout << "Image: " << numImages << endl;
+			printTime("Get Image", stepTime);
+			Image filteredImage1 = filterImageGPU(cameraImage1, scale);
+			printTime("Filter Image", stepTime);
+
+			vector<vector<Point> > contours1 = searchImage(filteredImage1);
+			printTime("Search Image", stepTime);
 
 
-			if(i == 8)
-			{
-				cout << "Iteration: " << numImages << endl;
-				printTime("Get Image", stepTime);
-				Image filteredImage1 = filterImageGPU(cameraImage1, scale);
-				printTime("Filter Image", stepTime);
-
-				vector<vector<Point> > contours1 = searchImage(filteredImage1);
-				printTime("Search Image", stepTime);
+			Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
 
 
-				Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
+			saveImage(contourImage1, numImages, savePath);
+			printTime("Save Image", stepTime);
 
 
-				saveImage(contourImage1, numImages, savePath);
-				printTime("Save Image", stepTime);
-				i = 0;
-				//continue;
-				cout << endl << endl;
-			}
-
-			i += 1;
-
-
+			cout << endl << endl;
 
 		}
 
@@ -210,7 +251,16 @@ int main(int argc, char** argv )
 	}
 
     /*----- EXIT PROGRAM -----*/
-	delete src1;
+	if(src1 != NULL)
+	{
+		delete src1;
+	}
+	if(src2 != NULL)
+	{
+		delete src2;
+	}
+
+
 	cuda::resetDevice();
 	cam1.release();
 

@@ -11,8 +11,30 @@ Dependencies:
 Usage:
 Git does not track empty folders. To use this program in developement, the user must create an Input_Images and an Output_Images folder. Images to process should be placed in the Input_Images folder. Within this folder, images can be organized into subfolders.
 
+To process videos, make an "Input_Launch_Videos" and an "Output_Launch_Videos folder in the main directory. Make subfolders in both directories (names must match)
+
 Processed images will be saved to the Output_Images folder.
 
 For faster processing of selected images, create a "Selected_Images" folder and place only a few desired images.
 
 Look at the source code for detailed path information.
+
+If using cameras, use the eclipse_launch script.
+
+COLOR CALIBRATION:
+The algorithm will automatically look for a calibration file either in the folder containing the source files, or in the main folder if using the camera. The file must be in the following format:
+
+#Blue
+blue_h_low, blue_s_low, blue_v_low
+blue_h_high, blue_s_high, blue_v_high
+blue_h_ideal, blue_s_ideal, blue_v_ideal
+
+#Pink:
+pink_h_low, pink_s_low, pink_v_low
+pink_h_high, pink_s_high, pink_v_high
+pink_h_ideal, pink_s_ideal, pink_v_ideal
+
+#Yellow:
+yellow_h_low, yellow_s_low, yellow_v_low
+yellow_h_high, yellow_s_high, yellow_v_high
+yellow_h_ideal, yellow_s_ideal, yellow_v_ideal

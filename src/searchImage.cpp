@@ -44,18 +44,18 @@ vector<vector<Point> > searchImage(Image imgHSV)
 	vector<vector<Point> > bestContours(3);
 
 	//Threading option
-//	thread findBlue(&Tarp::findBestTarp,&blue, ref(matHSV), ref(splitMatHSV),ref(bestContours[0]));
-//	thread findPink(&Tarp::findBestTarp,&pink, ref(matHSV), ref(splitMatHSV),ref(bestContours[1]));
-//	thread findYellow(&Tarp::findBestTarp,&yellow, ref(matHSV), ref(splitMatHSV),ref(bestContours[2]));
-//	findBlue.join();
-//	findPink.join();
-//	findYellow.join();
+	thread findBlue(&Tarp::findBestTarp,&blue, ref(matHSV), ref(splitMatHSV),ref(bestContours[0]));
+	thread findPink(&Tarp::findBestTarp,&pink, ref(matHSV), ref(splitMatHSV),ref(bestContours[1]));
+	thread findYellow(&Tarp::findBestTarp,&yellow, ref(matHSV), ref(splitMatHSV),ref(bestContours[2]));
+	findBlue.join();
+	findPink.join();
+	findYellow.join();
 
 	//Sequential option
 
-	blue.findBestTarp(matHSV, splitMatHSV, bestContours[0]);
-	pink.findBestTarp(matHSV, splitMatHSV, bestContours[1]);
-	yellow.findBestTarp(matHSV, splitMatHSV, bestContours[2]);
+//	blue.findBestTarp(matHSV, splitMatHSV, bestContours[0]);
+//	pink.findBestTarp(matHSV, splitMatHSV, bestContours[1]);
+//	yellow.findBestTarp(matHSV, splitMatHSV, bestContours[2]);
 
 	return bestContours;
 }
