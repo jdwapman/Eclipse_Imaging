@@ -181,7 +181,7 @@ int main(int argc, char** argv )
 		savePath = vp.parent_path().string();
 
 		size_t index = 0;
-		index = savePath.find("Input", index); //TODO: Separate imagePath, saveImagePath
+		index = savePath.find("Input", index);
 		savePath.replace(index,5,"Output"); //Replace "Input" with "Output
 
 		VideoCapture vid(vp.string());
@@ -267,6 +267,6 @@ int main(int argc, char** argv )
 	cuda::resetDevice();
 	cam1.release();
 
-    return 0;
+	return 0;
 
 }
