@@ -294,7 +294,6 @@ void ImgSource::getFileImages()
 		this->filePaths.push(currentFilePath);
 		this->colors.push(imgColors);
 
-
 	}
 
 	cout << endl << endl;
