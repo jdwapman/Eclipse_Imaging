@@ -5,12 +5,12 @@
  *      Author: jwapman
  */
 
-#include <iostream> //Input/output library
+#include <iostream>
 #include <vector>
 #include <string>
 #include <ctime>
 
-#include <opencv2/opencv.hpp> //OpenCV library
+#include <opencv2/opencv.hpp>
 
 
 #include "boost/filesystem.hpp"
@@ -31,14 +31,14 @@ void saveImage(Image img, int numImages, string cameraSavePath)
 	else //Save with original filename in output folder
 	{
 		size_t index = 0;
-		index = savePath.find("Input", index); //TODO: Separate imagePath, saveImagePath
+		index = savePath.find("Input", index);
 		savePath.replace(index,5,"Output"); //Replace "Input" with "Output
 	}
 
 	imwrite(savePath,img.img);
 }
 
-//Draws contours on top of cameraImgBGR.
+//Draws contours on top of image.
 Image drawImageContours(Image img, vector<vector<Point> > contours, double scale)
 {
 
@@ -71,15 +71,9 @@ Image drawImageContours(Image img, vector<vector<Point> > contours, double scale
 	{
 		if(contours[i].size() > 0){
 //			drawContours(drawImg.img, contours, i, color[i], 5, 8);
-			rectangle( drawImg.img, boundRect[i].tl(), boundRect[i].br(), color[i], 10, 8, 0 );
+			rectangle( drawImg.img, boundRect[i].tl(), boundRect[i].br(), color[i], 5, 8, 0 );
 		}
 	}
-
-	//Display window containing thresholded tarp
-//	namedWindow("Final Image",WINDOW_NORMAL);
-//	resizeWindow("Final Image",600,600);
-//	imshow("Final Image", cameraImgBGRSmall);
-//	waitKey(0); //Wait for any key press before closing window
 
 	return drawImg;
 }
