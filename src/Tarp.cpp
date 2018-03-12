@@ -368,33 +368,35 @@ void filterEdgeContrast(vector<vector<Point> > tarpContours, vector<Mat> splitIm
 
 			for(unsigned int j = 0; j < largeContour.size(); j++) //Increase by 25%
 			{
-				largeContour[0][j].x = largeContour[0][j].x * 1.5;
-				largeContour[0][j].y = largeContour[0][j].y * 1.5;
+				largeContour[0][j].x = largeContour[0][j].x * 22.0;
+				largeContour[0][j].y = largeContour[0][j].y * 2.0;
 			}
 
-
-			//Get inner contour mean
-			Mat innerMask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
-
-			drawContours(innerMask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
-
-			Scalar innerMean;
-			Scalar innerStddev;
-			meanStdDev(splitImgHSV[0], innerMean, innerStddev, innerMask);
-
-			//Get outer contour mean
-			Mat outerMask(splitImgHSV[0].rows,splitImgHSV[0].cols,CV_8UC1, Scalar(0)); //Initialize
-			drawContours(outerMask, largeContour, 0, Scalar(255), -1, 8); //Draw filled in mask. Only 1 contour
-			Mat diffMask = outerMask - innerMask;
-
-
-			Scalar outerMean;
-			Scalar outerStddev;
-			meanStdDev(splitImgHSV[0], outerMean, outerStddev, diffMask);
-
-			if(abs(outerMean.val[0] - innerMean.val[0]) < 5) //Reject if there isn't enough contrast
+			for(unsigned int k = 0; k < 3; k++)
 			{
-				tarpValid[i] = false;
+				//Get inner contour mean
+				Mat innerMask(splitImgHSV[k].rows,splitImgHSV[k].cols,CV_8UC1, Scalar(0)); //Initialize
+
+				drawContours(innerMask, tarpContours, i, Scalar(255), -1, 8); //Draw filled in mask
+
+				Scalar innerMean;
+				Scalar innerStddev;
+				meanStdDev(splitImgHSV[k], innerMean, innerStddev, innerMask);
+
+				//Get outer contour mean
+				Mat outerMask(splitImgHSV[k].rows,splitImgHSV[k].cols,CV_8UC1, Scalar(0)); //Initialize
+				drawContours(outerMask, largeContour, 0, Scalar(255), -1, 8); //Draw filled in mask. Only 1 contour
+				Mat diffMask = outerMask - innerMask;
+
+
+				Scalar outerMean;
+				Scalar outerStddev;
+				meanStdDev(splitImgHSV[k], outerMean, outerStddev, diffMask);
+
+				if(abs(outerMean.val[0] - innerMean.val[0]) < 5) //Reject if there isn't enough contrast
+				{
+					tarpValid[i] = false;
+				}
 			}
 
 
