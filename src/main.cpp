@@ -127,6 +127,8 @@ int main(int argc, char** argv )
 		double exp = 4; //Shutter speed? Use increments of 2x or 0.5x for full stops
 		cam1.set(CAP_PROP_EXPOSURE, exp/100.0);
 
+		
+
 		//Initialize camera 2
 		if(numCameras == 2)
 		{
@@ -138,6 +140,9 @@ int main(int argc, char** argv )
 
 			double exp = 4; //Shutter speed? Use increments of 2x or 0.5x for full stops
 			cam2.set(CAP_PROP_EXPOSURE, exp/100.0);
+
+
+
 		}
 
 
