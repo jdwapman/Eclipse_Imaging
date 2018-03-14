@@ -86,7 +86,7 @@ int main(int argc, char** argv )
 	/*----- INITIALIZE IMAGE SOURCE -----*/
 
 	VideoCapture cam1, cam2;
-	string saveFolder, savePath;
+	string savePath1, savePath2;
 
 	if(SOURCE == "CAMERA")
 	{
@@ -155,9 +155,12 @@ int main(int argc, char** argv )
 		int min = now->tm_min;
 		int sec = now->tm_sec;
 
-		saveFolder = "Cam1_" + to_string(year) + "-" + to_string(mon) + "-" + to_string(day) + "_" + to_string(hour) + ":" + to_string(min) + ":" + to_string(sec);
-		savePath = ((getenv("HOME")) + string("/Eclipse/Target_Detection/Output_Images/Camera_Images/") + saveFolder);
 
+		savePath1 = argv[2];
+		cout << savePath1 << endl;
+
+		savePath2 = argv[3];
+		cout << savePath2 << endl;
 
 	}
 
@@ -169,7 +172,11 @@ int main(int argc, char** argv )
 	if(SOURCE == "CAMERA")
 	{
 		src1 = new ImgSource(cam1);
-		src2 = new ImgSource(cam2);
+
+		if(numCameras == 2)
+		{
+			src2 = new ImgSource(cam2);
+		}
 	}
 	else if(SOURCE == "FILE")
 	{
@@ -178,11 +185,11 @@ int main(int argc, char** argv )
 	else if(SOURCE == "VIDEO")
 	{
 		path vp = (getenv("HOME")) + string("/Eclipse/Target_Detection/Input_Launch_Videos/flight_3/flight_3.mp4");
-		savePath = vp.parent_path().string();
+		savePath1 = vp.parent_path().string();
 
 		size_t index = 0;
-		index = savePath.find("Input", index);
-		savePath.replace(index,5,"Output"); //Replace "Input" with "Output
+		index = savePath1.find("Input", index);
+		savePath1.replace(index,5,"Output"); //Replace "Input" with "Output
 
 		VideoCapture vid(vp.string());
 		src1 = new ImgSource(vid, vp);
@@ -210,47 +217,80 @@ int main(int argc, char** argv )
 	int numImages = 0;
 	int i = 0;
 
-	while(run)
+	while(i != atoi(argv[1]))
 	{
-		Image cameraImage1 = src1->getImage();
+		i++;
 
+		// ===== CAMERA 1 ===== //
+		cout << "Camera 1" << endl;
+		Image cameraImage1 = src1->getImage();
 
 		if(!cameraImage1.valid)
 		{
 			run = false;
-			cout << "No image" << endl;
+			cout << "No image Camera 1" << endl;
 			break;
 		}
 
 		if(run)
 		{
-
 			numImages++;
-			i++;
-			if(i == 8)
-			{
 
-				cout << "Image: " << numImages << endl;
-				printTime("Get Image", stepTime);
-				Image filteredImage1 = filterImageGPU(cameraImage1, scale);
-				printTime("Filter Image", stepTime);
+			cout << "Image: " << numImages << endl;
+			printTime("Get Image", stepTime);
+			Image filteredImage1 = filterImageGPU(cameraImage1, scale);
+			printTime("Filter Image", stepTime);
 
-				vector<vector<Point> > contours1 = searchImage(filteredImage1);
-				printTime("Search Image", stepTime);
+			vector<vector<Point> > contours1 = searchImage(filteredImage1);
+			printTime("Search Image", stepTime);
 
 
-				Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
+			Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
 
 
-				saveImage(contourImage1, numImages, savePath);
-				printTime("Save Image", stepTime);
-				i = 0;
+			saveImage(contourImage1, numImages, savePath1);
+			printTime("Save Image", stepTime);
 
-				cout << endl << endl;
-			}
+			cout << endl << endl;
 
 		}
 
+		// ===== CAMERA 2 ===== //
+		if(numCameras == 2)
+		{
+			cout << "Camera 2" << endl;
+			Image cameraImage2 = src2->getImage();
+
+			if(!cameraImage2.valid)
+			{
+				run = false;
+				cout << "No image Camera 2" << endl;
+				break;
+			}
+
+			if(run)
+			{
+				numImages++;
+
+				cout << "Image: " << numImages << endl;
+				printTime("Get Image", stepTime);
+				Image filteredImage2 = filterImageGPU(cameraImage2, scale);
+				printTime("Filter Image", stepTime);
+
+				vector<vector<Point> > contours2 = searchImage(filteredImage2);
+				printTime("Search Image", stepTime);
+
+
+				Image contourImage2 = drawImageContours(cameraImage2, contours2, scale);
+
+
+				saveImage(contourImage2, numImages, savePath2);
+				printTime("Save Image", stepTime);
+
+				cout << endl << endl;
+
+			}
+		}
 	}
 
     /*----- EXIT PROGRAM -----*/
@@ -265,7 +305,9 @@ int main(int argc, char** argv )
 
 
 	cuda::resetDevice();
+
 	cam1.release();
+	cam2.release();
 
 	return 0;
 
