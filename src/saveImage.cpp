@@ -38,6 +38,25 @@ void saveImage(Image img, int numImages, string cameraSavePath)
 	imwrite(savePath,img.img);
 }
 
+Rect2d contour2rect(vector<Point> contour, double scale)
+{
+
+	Rect2d boundRect;
+	vector<Rect> boundRect( contours1.size() ); //Vector of bounding rectangles for each tarp
+
+
+		if(contours1[i].size() > 0){
+			boundRect[i] = boundingRect( Mat(contours1[i]) );
+		}
+	 }
+
+	//Define initial bounding boxes using contours
+	bblue.x = boundRect[0].x / scale;
+	bblue.y = boundRect[0].y / scale;
+	bblue.width = boundRect[0].width / scale;
+	bblue.height = boundRect[0].height / scale;
+}
+
 //Draws contours on top of image.
 Image drawImageContours(Image img, vector<vector<Point> > contours, double scale)
 {
