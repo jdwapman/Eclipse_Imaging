@@ -20,8 +20,15 @@ mkdir Cam2
 cd ~/Eclipse/Target_Detection/Debug
 make all
 
+folder1=/media/nvidia/SD_TX1/Output_Images/Camera_Images/${date}/Cam1
+folder2=/media/nvidia/SD_TX1/Output_Images/Camera_Images/${date}/Cam2
+
 #    $1 contains number of images to capture. -1 for infinite.
-./Target_Detection $1 /media/nvidia/SD_TX1/Output_Images/Camera_Images/${date}/Cam1 /media/nvidia/SD_TX1/Output_Images/Camera_Images/${date}/Cam2
+./Target_Detection $1 $folder1 #$folder2
 
+#Stitch into video
+cd $folder1
+#cat *.jpg | ffmpeg -f image2pipe -r 10 -vcodec mjpeg -i - -vcodec libx264 out.mp4
 
-#shutdown?
+#Upload to dropbox
+~/Eclipse/Target_Detection/Dropbox-Uploader/dropbox_uploader.sh mkdir Cam2

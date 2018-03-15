@@ -165,9 +165,11 @@ int main(int argc, char** argv )
 		savePath1 = argv[2];
 		cout << savePath1 << endl;
 
-		savePath2 = argv[3];
-		cout << savePath2 << endl;
-
+		if(numCameras == 2)
+		{
+			savePath2 = argv[3];
+			cout << savePath2 << endl;
+		}
 	}
 
 
@@ -340,8 +342,11 @@ int main(int argc, char** argv )
 	cuda::resetDevice();
 
 	cam1.release();
-	cam2.release();
-
+	
+	if(numCameras == 2)
+	{
+		cam2.release();
+	}
 	return 0;
 
 }
