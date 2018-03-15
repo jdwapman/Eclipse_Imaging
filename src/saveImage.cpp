@@ -43,7 +43,7 @@ Rect2d contour2rect(vector<Point> contour, double scale)
 
 	Rect2d rect;
 
-	Rect boundRect;
+	Rect2d boundRect;
 
 	boundRect = boundingRect( Mat(contour) );
 
@@ -54,42 +54,42 @@ Rect2d contour2rect(vector<Point> contour, double scale)
 	rect.height = boundRect.height / scale;
 
 	return rect;
+
 }
 
 //Draws contours on top of image.
-Image drawImageContours(Image img, vector<vector<Point> > contours, double scale)
+Image drawImageContours(Image img, vector<vector<Point> > contours)
 {
 
 	Image drawImg = img;
 
-	vector<Rect> boundRect( contours.size() );
-
-	for(unsigned int i = 0; i < contours.size(); i++ )
-	 {
-		if(contours[i].size() > 0){
-			boundRect[i] = boundingRect( Mat(contours[i]) );
-		}
-	 }
-
-
 	//Draw contours on image.
 	const Scalar color[3] = {Scalar(50,0,0),Scalar(0,0,255),Scalar(24,130,0)};
-
-	for(unsigned int i = 0; i < contours.size(); i++)
-	{
-		for(unsigned int j = 0; j < contours[i].size(); j++)
-		{
-			contours[i][j].x = contours[i][j].x / scale;
-			contours[i][j].y = contours[i][j].y / scale;
-		}
-	}
-
 
 	for(unsigned int i = 0; i< contours.size(); i++ )
 	{
 		if(contours[i].size() > 0){
-//			drawContours(drawImg.img, contours, i, color[i], 5, 8);
-			rectangle( drawImg.img, boundRect[i].tl(), boundRect[i].br(), color[i], 5, 8, 0 );
+			drawContours(drawImg.img, contours, i, color[i], 5, 8);
+		}
+	}
+
+	return drawImg;
+}
+
+//Displays bounding rectangles on top of image
+Image drawImageBBoxes(Image img, vector<Rect2d> bboxes)
+{
+
+	Image drawImg = img;
+
+	//Draw contours on image.
+	const Scalar color[3] = {Scalar(50,0,0),Scalar(0,0,255),Scalar(24,130,0)};
+
+
+	for(unsigned int i = 0; i< bboxes.size(); i++ )
+	{
+		if(bboxes[i].area() > 0){
+			rectangle( drawImg.img, bboxes[i].tl(), bboxes[i].br(), color[i], 5, 8, 0 );
 		}
 	}
 

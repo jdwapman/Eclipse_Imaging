@@ -23,7 +23,7 @@ using namespace std;
 using namespace cv;
 
 
-vector<vector<Point> > searchImage(Image imgHSV)
+vector<vector<Point> > searchImage(Image imgHSV, double scale)
 {
 	//Split Mat
 	Mat matHSV = imgHSV.img;
@@ -56,6 +56,15 @@ vector<vector<Point> > searchImage(Image imgHSV)
 //	blue.findBestTarp(matHSV, splitMatHSV, bestContours[0]);
 //	pink.findBestTarp(matHSV, splitMatHSV, bestContours[1]);
 //	yellow.findBestTarp(matHSV, splitMatHSV, bestContours[2]);
+
+	for(unsigned int i = 0; i < bestContours.size(); i++)
+	{
+		for(unsigned int j = 0; j < bestContours[i].size(); j++)
+		{
+			bestContours[i][j].x = bestContours[i][j].x / scale;
+			bestContours[i][j].y = bestContours[i][j].y / scale;
+		}
+	}
 
 	return bestContours;
 }

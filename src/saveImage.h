@@ -15,7 +15,7 @@
 #include "Image.h"
 
 void saveImage(Image img, int numImages, string cameraSavePath);
-Image drawImageContours(Image img, vector<vector<Point> > contours, double scale);
+Image drawImageContours(Image img, vector<vector<Point> > contours);
 
 
 #endif /* SRC_SAVEIMAGE_H_ */

@@ -246,11 +246,11 @@ int main(int argc, char** argv )
 			Image filteredImage1 = filterImageGPU(cameraImage1, scale);
 			printTime("Filter Image", stepTime);
 
-			vector<vector<Point> > contours1 = searchImage(filteredImage1);
+			vector<vector<Point> > contours1 = searchImage(filteredImage1, scale); //Returns contours scaled to original image
 			printTime("Search Image", stepTime);
 
 
-			Image contourImage1 = drawImageContours(cameraImage1, contours1, scale);
+			Image contourImage1 = drawImageContours(cameraImage1, contours1);
 
 
 			saveImage(contourImage1, numImages, savePath1);
