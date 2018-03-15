@@ -26,6 +26,7 @@
 #include "filterImageGPU.h"
 #include "saveImage.h"
 #include "searchImage.h"
+#include "TarpTracker.h"
 
 //Misc Source Files
 #include "timing.h"
@@ -222,6 +223,10 @@ int main(int argc, char** argv )
 	int numImages = 0;
 	int i = 0;
 
+	TarpTracker trackerBlue;
+	TarpTracker trackerPink;
+	TarpTracker trackerYellow;
+
 	while(i != atoi(argv[1]))
 	{
 		i++;
@@ -249,6 +254,12 @@ int main(int argc, char** argv )
 			vector<Rect2d> bboxes1 = searchImage(filteredImage1, scale); //Returns contours scaled to original image
 			printTime("Search Image", stepTime);
 
+			cout << "Area = " << bboxes1[0].area() << endl;
+
+
+//			bboxes1[0] = trackerBlue.track(cameraImage1, bboxes1[0]);
+//			bboxes1[1] = trackerPink.track(cameraImage1, bboxes1[1]);
+//			bboxes1[2] = trackerYellow.track(cameraImage1, bboxes1[2]);
 
 			Image contourImage1 = drawImageBBoxes(cameraImage1, bboxes1);
 

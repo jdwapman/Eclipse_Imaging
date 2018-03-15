@@ -55,20 +55,42 @@ TarpTracker::~TarpTracker() {
 Rect2d TarpTracker::track(const Image& cameraImage, const Rect2d& bbox)
 {
 
-	Rect2d trackBox;
+	Rect2d trackBox = bbox;
 
-	if(bbox.area() != 0) //If bounding box exists, update seed
+	Rect2d expBox;
+	double scale = 4.0;
+	expBox.height = bbox.height * scale;
+	expBox.width = bbox.width * scale;
+	expBox.x = bbox.x + bbox.height/2 - expBox.height/2;
+	expBox.y = bbox.y + bbox.width/2 - expBox.width/2;
+
+
+	if(bbox.area() > 200) //If bounding box exists, update seed
 	{
-		this->tracker->init(cameraImage.img, bbox);
+		cout << "Init" << endl;
+
+		this->tracker->init(cameraImage.img, expBox);
 		this->initialized = true;
 	}
 	else //No tarp detected
 	{
 		if(this->initialized) //If there is a previous bounding box
 		{
-			bool ok = tracker->update(cameraImage.img, trackBox);
+			cout << "Updating: ";
+			Rect2d trackBoxScaled;
+			bool ok = tracker->update(cameraImage.img, trackBoxScaled);
+
+			trackBox.height = trackBoxScaled.height / scale;
+			trackBox.width = trackBoxScaled.width / scale;
+
+			trackBox.x = trackBoxScaled.x + trackBoxScaled.height/2 - trackBox.height/2;
+			trackBox.y = trackBoxScaled.y + trackBoxScaled.width/2 - trackBox.width/2;
+
+			cout << ok << endl;
 		}
 	}
+
+
 
 	return trackBox;
 
