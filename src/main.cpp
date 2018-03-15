@@ -272,6 +272,7 @@ int main(int argc, char** argv )
 		}
 
 		// ===== CAMERA 2 ===== //
+/*
 		if(numCameras == 2)
 		{
 			cout << "Camera 2" << endl;
@@ -306,7 +307,9 @@ int main(int argc, char** argv )
 				cout << endl << endl;
 
 			}
+
 		}
+*/
 	}
 
 
