@@ -28,7 +28,10 @@ folder2=/media/nvidia/SD_TX1/Output_Images/Camera_Images/${date}/Cam2
 
 #Stitch into video
 cd $folder1
-#cat *.jpg | ffmpeg -f image2pipe -r 10 -vcodec mjpeg -i - -vcodec libx264 out.mp4
+cat *.jpg | ffmpeg -f image2pipe -r 10 -vcodec mjpeg -i - -vcodec libx264 out.mp4
 
-#Upload to dropbox
-~/Eclipse/Target_Detection/Dropbox-Uploader/dropbox_uploader.sh mkdir Cam2
+#Make Dropbox directory
+~/Eclipse/Target_Detection/Dropbox-Uploader/dropbox_uploader.sh mkdir Eclipse_Telemetry/$date/Cam1
+
+#Upload
+~/Eclipse/Target_Detection/Dropbox-Uploader/dropbox_uploader.sh upload * Eclipse_Telemetry/$date/Cam1
