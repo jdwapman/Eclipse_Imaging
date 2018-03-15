@@ -246,11 +246,11 @@ int main(int argc, char** argv )
 			Image filteredImage1 = filterImageGPU(cameraImage1, scale);
 			printTime("Filter Image", stepTime);
 
-			vector<vector<Point> > contours1 = searchImage(filteredImage1, scale); //Returns contours scaled to original image
+			vector<Rect2d> bboxes1 = searchImage(filteredImage1, scale); //Returns contours scaled to original image
 			printTime("Search Image", stepTime);
 
 
-			Image contourImage1 = drawImageContours(cameraImage1, contours1);
+			Image contourImage1 = drawImageBBoxes(cameraImage1, bboxes1);
 
 
 			saveImage(contourImage1, numImages, savePath1);
@@ -261,41 +261,41 @@ int main(int argc, char** argv )
 		}
 
 		// ===== CAMERA 2 ===== //
-		if(numCameras == 2)
-		{
-			cout << "Camera 2" << endl;
-			Image cameraImage2 = src2->getImage();
-
-			if(!cameraImage2.valid)
-			{
-				run = false;
-				cout << "No image Camera 2" << endl;
-				break;
-			}
-
-			if(run)
-			{
-				numImages++;
-
-				cout << "Image: " << numImages << endl;
-				printTime("Get Image", stepTime);
-				Image filteredImage2 = filterImageGPU(cameraImage2, scale);
-				printTime("Filter Image", stepTime);
-
-				vector<vector<Point> > contours2 = searchImage(filteredImage2);
-				printTime("Search Image", stepTime);
-
-
-				Image contourImage2 = drawImageContours(cameraImage2, contours2, scale);
-
-
-				saveImage(contourImage2, numImages, savePath2);
-				printTime("Save Image", stepTime);
-
-				cout << endl << endl;
-
-			}
-		}
+//		if(numCameras == 2)
+//		{
+//			cout << "Camera 2" << endl;
+//			Image cameraImage2 = src2->getImage();
+//
+//			if(!cameraImage2.valid)
+//			{
+//				run = false;
+//				cout << "No image Camera 2" << endl;
+//				break;
+//			}
+//
+//			if(run)
+//			{
+//				numImages++;
+//
+//				cout << "Image: " << numImages << endl;
+//				printTime("Get Image", stepTime);
+//				Image filteredImage2 = filterImageGPU(cameraImage2, scale);
+//				printTime("Filter Image", stepTime);
+//
+//				vector<vector<Point> > contours2 = searchImage(filteredImage2);
+//				printTime("Search Image", stepTime);
+//
+//
+//				Image contourImage2 = drawImageContours(cameraImage2, contours2, scale);
+//
+//
+//				saveImage(contourImage2, numImages, savePath2);
+//				printTime("Save Image", stepTime);
+//
+//				cout << endl << endl;
+//
+//			}
+//		}
 	}
 
 

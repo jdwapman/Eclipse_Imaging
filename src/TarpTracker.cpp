@@ -73,25 +73,3 @@ Rect2d TarpTracker::track(const Image& cameraImage, const Rect2d& bbox)
 	return trackBox;
 
 }
-
-//				//Track Image
-//				vector<Rect> boundRect( contours1.size() ); //Vector of bounding rectangles for each tarp
-//
-//				for(unsigned int i = 0; i < contours1.size(); i++ ) //Set the tracking bounding rect to the detection rectangles
-//				 {
-//					if(contours1[i].size() > 0){
-//						boundRect[i] = boundingRect( Mat(contours1[i]) );
-//					}
-//				 }
-//
-//				//Define initial bounding boxes using contours
-//				bblue.x = boundRect[0].x / scale;
-//				bblue.y = boundRect[0].y / scale;
-//				bblue.width = boundRect[0].width / scale;
-//				bblue.height = boundRect[0].height / scale;
-//
-//
-//
-//				rectangle(contourImage1.img, bblue, Scalar(50,0,0), 6, 1);
-
-

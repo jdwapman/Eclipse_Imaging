@@ -16,7 +16,7 @@
 using namespace std;
 using namespace cv;
 
-vector<vector<Point> > searchImage(Image filteredImage, double scale);
+vector<Rect2d> searchImage(Image filteredImage, double scale);
 
 
 #endif /* SRC_SEARCHIMAGE_H_ */

@@ -23,7 +23,7 @@ using namespace std;
 using namespace cv;
 
 
-vector<vector<Point> > searchImage(Image imgHSV, double scale)
+vector<Rect2d> searchImage(Image imgHSV, double scale)
 {
 	//Split Mat
 	Mat matHSV = imgHSV.img;
@@ -66,5 +66,15 @@ vector<vector<Point> > searchImage(Image imgHSV, double scale)
 		}
 	}
 
-	return bestContours;
+
+	vector<Rect2d> bboxes(3);
+	for(unsigned int i = 0; i < bestContours.size(); i++)
+	{
+		if(bestContours[i].size() > 0)
+		{
+			bboxes[i] = boundingRect( Mat(bestContours[i]) );
+		}
+	}
+
+	return bboxes;
 }

@@ -38,27 +38,15 @@ void saveImage(Image img, int numImages, string cameraSavePath)
 	imwrite(savePath,img.img);
 }
 
-Rect2d contour2rect(vector<Point> contour, double scale)
+Rect2d contour2rect(vector<Point> contour)
 {
-
-	Rect2d rect;
-
-	Rect2d boundRect;
-
-	boundRect = boundingRect( Mat(contour) );
-
-	//Define initial bounding boxes using contours
-	rect.x = boundRect.x / scale;
-	rect.y = boundRect.y / scale;
-	rect.width = boundRect.width / scale;
-	rect.height = boundRect.height / scale;
+	Rect2d rect = boundingRect( Mat(contour) );
 
 	return rect;
-
 }
 
 //Draws contours on top of image.
-Image drawImageContours(Image img, vector<vector<Point> > contours)
+Image drawImageContours(const Image& img, const vector<vector<Point> >& contours)
 {
 
 	Image drawImg = img;
@@ -77,7 +65,7 @@ Image drawImageContours(Image img, vector<vector<Point> > contours)
 }
 
 //Displays bounding rectangles on top of image
-Image drawImageBBoxes(Image img, vector<Rect2d> bboxes)
+Image drawImageBBoxes(const Image& img, const vector<Rect2d>& bboxes)
 {
 
 	Image drawImg = img;
