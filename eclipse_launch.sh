@@ -17,7 +17,7 @@ mkdir Cam2
 
 #Instruct user to input calibrated colors.txt (Jonathan's note: not needed. File must be at ~/Eclipse/Target_Detection/colors.txt)
 
-cd ~/Eclipse/Target_Detection/Release
+cd ~/Eclipse/Target_Detection/Debug
 make all
 
 #    $1 contains number of images to capture. -1 for infinite.

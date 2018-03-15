@@ -49,7 +49,7 @@ Image filterImageGPU(Image& img, double scale)
 	cuda::GpuMat gpuMatBGR(matBGR);
 	cuda::GpuMat gpuMatBGRSmall;
 
-	if(scale != 1)
+	if(scale != 1.0)
 	{
 		cuda::resize(gpuMatBGR,gpuMatBGRSmall,Size(),scale,scale,INTER_LINEAR);
 	}

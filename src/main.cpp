@@ -254,17 +254,17 @@ int main(int argc, char** argv )
 			vector<Rect2d> bboxes1 = searchImage(filteredImage1, scale); //Returns contours scaled to original image
 			printTime("Search Image", stepTime);
 
-			cout << "Area = " << bboxes1[0].area() << endl;
+			//cout << "Area = " << bboxes1[0].area() << endl;
 
 
 //			bboxes1[0] = trackerBlue.track(cameraImage1, bboxes1[0]);
 //			bboxes1[1] = trackerPink.track(cameraImage1, bboxes1[1]);
 //			bboxes1[2] = trackerYellow.track(cameraImage1, bboxes1[2]);
 
-			Image contourImage1 = drawImageBBoxes(cameraImage1, bboxes1);
+			Image bboxImage1 = drawImageBBoxes(cameraImage1, bboxes1);
 
 
-			saveImage(contourImage1, numImages, savePath1);
+			saveImage(bboxImage1, numImages, savePath1);
 			printTime("Save Image", stepTime);
 
 			cout << endl << endl;
@@ -272,7 +272,7 @@ int main(int argc, char** argv )
 		}
 
 		// ===== CAMERA 2 ===== //
-/*
+
 		if(numCameras == 2)
 		{
 			cout << "Camera 2" << endl;
@@ -294,14 +294,20 @@ int main(int argc, char** argv )
 				Image filteredImage2 = filterImageGPU(cameraImage2, scale);
 				printTime("Filter Image", stepTime);
 
-				vector<vector<Point> > contours2 = searchImage(filteredImage2);
+				vector<Rect2d> bboxes2 = searchImage(filteredImage2, scale); //Returns contours scaled to original image
 				printTime("Search Image", stepTime);
 
+				//cout << "Area = " << bboxes2[0].area() << endl;
 
-				Image contourImage2 = drawImageContours(cameraImage2, contours2, scale);
+
+	//			bboxes1[0] = trackerBlue.track(cameraImage1, bboxes1[0]);
+	//			bboxes1[1] = trackerPink.track(cameraImage1, bboxes1[1]);
+	//			bboxes1[2] = trackerYellow.track(cameraImage1, bboxes1[2]);
+
+				Image bboxImage2 = drawImageBBoxes(cameraImage2, bboxes2);
 
 
-				saveImage(contourImage2, numImages, savePath2);
+				saveImage(bboxImage2, numImages, savePath2);
 				printTime("Save Image", stepTime);
 
 				cout << endl << endl;
@@ -309,7 +315,7 @@ int main(int argc, char** argv )
 			}
 
 		}
-*/
+
 	}
 
 
