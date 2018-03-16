@@ -19,7 +19,7 @@ parent=/media/nvidia/SD_TX1/Output_Images/Camera_Images/${date}
 folder1=/media/nvidia/SD_TX1/Output_Images/Camera_Images/${date}/Cam1
 folder2=/media/nvidia/SD_TX1/Output_Images/Camera_Images/${date}/Cam2
 
-cd ~/Eclipse/Target_Detection/Debug
+cd ~/Eclipse/Target_Detection/Release
 make all | tee $parent/compile_log_$date.txt
 
 #    $1 contains number of images to capture. -1 for infinite.
