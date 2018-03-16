@@ -48,12 +48,6 @@ mutex coutMutex;
 int main(int argc, char** argv )
 {
 
-	if(argc < 2)
-	{
-		cout << "Usage: ./Target_Detection <numImages>" << endl;
-		return -1;
-	}
-
 	/*======== IMAGE SOURCE LOCATION =======*/
 	string SOURCE = "VIDEO"; //FILE, VIDEO, CAMERA
 
@@ -82,6 +76,8 @@ int main(int argc, char** argv )
 	//Initialize GPU
 	cuda::setDevice(0);
 	cuda::resetDevice();
+
+
 
 
 	//Filesystem sources (for testing)
