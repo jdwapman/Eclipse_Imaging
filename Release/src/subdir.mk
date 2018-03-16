@@ -6,6 +6,7 @@
 CPP_SRCS += \
 ../src/ImgSource.cpp \
 ../src/Tarp.cpp \
+../src/TarpTracker.cpp \
 ../src/filterImageGPU.cpp \
 ../src/main.cpp \
 ../src/saveImage.cpp \
@@ -16,6 +17,7 @@ CPP_SRCS += \
 OBJS += \
 ./src/ImgSource.o \
 ./src/Tarp.o \
+./src/TarpTracker.o \
 ./src/filterImageGPU.o \
 ./src/main.o \
 ./src/saveImage.o \
@@ -26,6 +28,7 @@ OBJS += \
 CPP_DEPS += \
 ./src/ImgSource.d \
 ./src/Tarp.d \
+./src/TarpTracker.d \
 ./src/filterImageGPU.d \
 ./src/main.d \
 ./src/saveImage.d \
