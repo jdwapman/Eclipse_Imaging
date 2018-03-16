@@ -150,11 +150,7 @@ int main(int argc, char** argv )
 
 			double exp = 4; //Shutter speed? Use increments of 2x or 0.5x for full stops
 			cam2.set(CAP_PROP_EXPOSURE, exp/100.0);
-
-
-
 		}
-
 
 
 		/*----- CREATE CAMERA OUTPUT FOLDER -----*/
@@ -234,20 +230,6 @@ int main(int argc, char** argv )
 
 	int i = 0;
 
-	TarpTracker trackerBlue;
-	TarpTracker trackerPink;
-	TarpTracker trackerYellow;
-
-	//Threading variables
-	queue<Image> cameraImages;
-	mutex cameraImagesMutex;
-
-	queue<Image> filteredImages;
-	mutex filteredImagesMutex;
-
-	queue<Image> labeledImages;
-	mutex labeledImagesMutex;
-
 	//Pipelined variables
 	future<Image> futureCameraImage1;
 	Image cameraImage1;
@@ -303,7 +285,6 @@ int main(int argc, char** argv )
 		}
 
 
-
 		//***** Get Data From Threads *****//
 
 		cameraImage1 = futureCameraImage1.get();
@@ -325,8 +306,6 @@ int main(int argc, char** argv )
 			cout << "No image Camera 1" << endl;
 			break;
 		}
-
-
 
 		printTime("Total Time: ", stepTime);
 
@@ -369,13 +348,6 @@ int main(int argc, char** argv )
 				vector<Rect2d> bboxes2 = searchImage(filteredImage2, scale); //Returns contours scaled to original image
 				printTime("Search Image", stepTime);
 
-				//cout << "Area = " << bboxes2[0].area() << endl;
-
-
-	//			bboxes1[0] = trackerBlue.track(cameraImage1, bboxes1[0]);
-	//			bboxes1[1] = trackerPink.track(cameraImage1, bboxes1[1]);
-	//			bboxes1[2] = trackerYellow.track(cameraImage1, bboxes1[2]);
-
 				Image bboxImage2 = drawImageBBoxes(cameraImage2, bboxes2);
 
 
@@ -389,13 +361,6 @@ int main(int argc, char** argv )
 		}
 
 	}
-
-
-
-
-
-
-
 
 
     /*----- EXIT PROGRAM -----*/
