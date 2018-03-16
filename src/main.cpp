@@ -12,6 +12,11 @@
 #include <future>
 #include <chrono>
 
+//Multithreading
+#include <queue>
+#include <mutex>
+#include <future>
+
 //Boost
 #include "boost/filesystem.hpp"
 
@@ -226,12 +231,45 @@ int main(int argc, char** argv )
 	bool run = true;
 
 	//End/count conditions
-	int numImages = 0;
+
 	int i = 0;
 
 	TarpTracker trackerBlue;
 	TarpTracker trackerPink;
 	TarpTracker trackerYellow;
+
+	//Threading variables
+	queue<Image> cameraImages;
+	mutex cameraImagesMutex;
+
+	queue<Image> filteredImages;
+	mutex filteredImagesMutex;
+
+	queue<Image> labeledImages;
+	mutex labeledImagesMutex;
+
+	mutex coutMutex;
+
+	//Pipelined variables
+	future<Image> futureCameraImage1;
+	Image cameraImage1;
+	Image cameraImage1_prev1;
+	Image cameraImage1_prev2;
+
+	future<Image> futureFilteredImage1;
+	Image filteredImage1;
+	Image filteredImage1_prev1;
+
+	future<vector<Rect2d> > futureBboxes1;
+	vector<Rect2d> bboxes1;
+
+	Image bboxImage1;
+	Image bboxImage1_prev1;
+
+	int numImages = 0;
+	int numImages_prev1 = 0;
+	int numImages_prev2 = 0;
+	int numImages_prev3 = 0;
 
 	while(i != atoi(argv[1]))
 	{
@@ -239,43 +277,59 @@ int main(int argc, char** argv )
 
 		// ===== CAMERA 1 ===== //
 		cout << "Camera 1" << endl;
-		Image cameraImage1 = src1->getImage();
+		//cameraImage1 = src1->getImage();
+		futureCameraImage1 = async(launch::async, &ImgSource::getImage, src1);
+		cameraImage1 = futureCameraImage1.get();
 
 		if(!cameraImage1.valid)
 		{
-			run = false;
 			cout << "No image Camera 1" << endl;
 			break;
 		}
 
-		if(run)
+		numImages++;
+
+		cout << "Image: " << numImages << endl;
+
+
+
+		if(!cameraImage1_prev1.img.empty())
 		{
-			numImages++;
-
-			cout << "Image: " << numImages << endl;
-			printTime("Get Image", stepTime);
-			Image filteredImage1 = filterImageGPU(cameraImage1, scale);
-			printTime("Filter Image", stepTime);
-
-			vector<Rect2d> bboxes1 = searchImage(filteredImage1, scale); //Returns contours scaled to original image
-			printTime("Search Image", stepTime);
-
-			//cout << "Area = " << bboxes1[0].area() << endl;
-
-
-//			bboxes1[0] = trackerBlue.track(cameraImage1, bboxes1[0]);
-//			bboxes1[1] = trackerPink.track(cameraImage1, bboxes1[1]);
-//			bboxes1[2] = trackerYellow.track(cameraImage1, bboxes1[2]);
-
-			Image bboxImage1 = drawImageBBoxes(cameraImage1, bboxes1);
-
-
-			saveImage(bboxImage1, numImages, savePath1);
-			printTime("Save Image", stepTime);
-
-			cout << endl << endl;
-
+			//filteredImage1 = filterImageGPU(cameraImage1_prev1, scale);
+			futureFilteredImage1 = async(launch::async, filterImageGPU, ref(cameraImage1_prev1), ref(scale));
+			filteredImage1 = futureFilteredImage1.get();
 		}
+
+		//Search stage
+		if(!filteredImage1_prev1.img.empty())
+		{
+			//vector<Rect2d> bboxes1 = searchImage(filteredImage1_prev1, scale); //Returns contours scaled to original image
+			futureBboxes1 = async(launch::async, searchImage, ref(filteredImage1_prev1), ref(scale));
+			bboxes1 = futureBboxes1.get();
+
+			bboxImage1 = drawImageBBoxes(cameraImage1_prev2, bboxes1);
+		}
+
+
+		//Save stage
+		if(!bboxImage1_prev1.img.empty())
+		{
+			//saveImage(bboxImage1_prev1, numImages_prev3, savePath1);
+			async(launch::async, saveImage, ref(bboxImage1_prev1), ref(numImages_prev3), ref(savePath1));
+		}
+		cout << endl << endl;
+		printTime("Total Time: ", stepTime);
+
+		//Pipeline
+		numImages_prev3 = numImages_prev2;
+		bboxImage1_prev1 = bboxImage1;
+
+		filteredImage1_prev1 = filteredImage1;
+		cameraImage1_prev2 = cameraImage1_prev1;
+		numImages_prev2 = numImages_prev1;
+
+		numImages_prev1 = numImages;
+		cameraImage1_prev1 = cameraImage1;
 
 		// ===== CAMERA 2 ===== //
 
