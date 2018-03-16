@@ -270,13 +270,11 @@ int main(int argc, char** argv )
 		if(!cameraImage1_prev1.img.empty()) //Filter thread
 		{
 			futureFilteredImage1 = async(launch::async, filterImageGPU, ref(cameraImage1_prev1), ref(scale)); //Filter image thread
-			filteredImage1 = futureFilteredImage1.get();
 		}
 
 		if(!filteredImage1_prev1.img.empty()) //Search thread
 		{
 			futureBboxes1 = async(launch::async, searchImage, ref(filteredImage1_prev1), ref(scale));
-			bboxes1 = futureBboxes1.get();
 		}
 
 		if(!bboxImage1_prev1.img.empty()) //Save thread
