@@ -6,6 +6,8 @@
  */
 
 #include <opencv2/opencv.hpp> //OpenCV library
+#include <mutex>
+#include "coutMutex.h"
 
 using namespace std;
 using namespace cv;
@@ -14,7 +16,12 @@ using namespace cv;
 void printTime(String operation, TickMeter& tm)
 {
 	tm.stop();
+
+	//Lock & unlock cout for multithreading
+	coutMutex.lock();
 	cout << operation << ": "  << tm.getTimeMilli() << " ms" << endl;
+	coutMutex.unlock();
+
 	tm.reset();
 	tm.start();
 	return;
