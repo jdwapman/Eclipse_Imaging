@@ -277,50 +277,62 @@ int main(int argc, char** argv )
 
 		// ===== CAMERA 1 ===== //
 		cout << "Camera 1" << endl;
-		//cameraImage1 = src1->getImage();
-		futureCameraImage1 = async(launch::async, &ImgSource::getImage, src1);
-		cameraImage1 = futureCameraImage1.get();
-
-		if(!cameraImage1.valid)
-		{
-			cout << "No image Camera 1" << endl;
-			break;
-		}
 
 		numImages++;
 
 		cout << "Image: " << numImages << endl;
 
 
+		//***** Launch Threads *****//
 
-		if(!cameraImage1_prev1.img.empty())
+		futureCameraImage1 = async(launch::async, &ImgSource::getImage, src1);  //Get image thread
+
+		if(!cameraImage1_prev1.img.empty()) //Filter thread
 		{
-			//filteredImage1 = filterImageGPU(cameraImage1_prev1, scale);
-			futureFilteredImage1 = async(launch::async, filterImageGPU, ref(cameraImage1_prev1), ref(scale));
+			futureFilteredImage1 = async(launch::async, filterImageGPU, ref(cameraImage1_prev1), ref(scale)); //Filter image thread
+		}
+
+		if(!filteredImage1_prev1.img.empty()) //Search thread
+		{
+			futureBboxes1 = async(launch::async, searchImage, ref(filteredImage1_prev1), ref(scale));
+		}
+
+		if(!bboxImage1_prev1.img.empty()) //Save thread
+		{
+			async(launch::async, saveImage, ref(bboxImage1_prev1), ref(numImages_prev3), ref(savePath1));
+		}
+
+
+
+		//***** Get Data From Threads *****//
+
+		cameraImage1 = futureCameraImage1.get();
+
+		if(!cameraImage1_prev1.img.empty()) //Filter thread
+		{
 			filteredImage1 = futureFilteredImage1.get();
 		}
 
-		//Search stage
-		if(!filteredImage1_prev1.img.empty())
+		if(!filteredImage1_prev1.img.empty()) //Search thread
 		{
-			//vector<Rect2d> bboxes1 = searchImage(filteredImage1_prev1, scale); //Returns contours scaled to original image
-			futureBboxes1 = async(launch::async, searchImage, ref(filteredImage1_prev1), ref(scale));
 			bboxes1 = futureBboxes1.get();
-
-			bboxImage1 = drawImageBBoxes(cameraImage1_prev2, bboxes1);
+			bboxImage1 = drawImageBBoxes(cameraImage1_prev2, bboxes1); //Draw contours. Fast enough that it doesn't need a thread
 		}
 
-
-		//Save stage
-		if(!bboxImage1_prev1.img.empty())
+		//Check camera image
+		if(!cameraImage1.valid)
 		{
-			//saveImage(bboxImage1_prev1, numImages_prev3, savePath1);
-			async(launch::async, saveImage, ref(bboxImage1_prev1), ref(numImages_prev3), ref(savePath1));
+			cout << "No image Camera 1" << endl;
+			break;
 		}
-		cout << endl << endl;
+
+
+
 		printTime("Total Time: ", stepTime);
 
-		//Pipeline
+		cout << endl << endl;
+
+		//Update Pipeline
 		numImages_prev3 = numImages_prev2;
 		bboxImage1_prev1 = bboxImage1;
 
