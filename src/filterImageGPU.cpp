@@ -12,86 +12,80 @@
  *      Author: jwapman
  */
 
-#include <iostream> //Input/output library
-#include <vector>
+#include <chrono>
+#include <future>
+#include <iostream>            //Input/output library
+#include <opencv2/opencv.hpp>  //OpenCV library
 #include <string>
-#include <opencv2/opencv.hpp> //OpenCV library
+#include <vector>
 #include "Tarp.h"
 #include "colors.h"
 #include "timing.h"
-#include <future>
-#include <chrono>
 
-#include "boost/filesystem.hpp"
 #include "Image.h"
+#include "boost/filesystem.hpp"
 
 using namespace std;
 using namespace cv;
 
 Image filterImageGPU(Image& img, double scale)
 {
+  // Start timer
+  TickMeter stepTime;
+  TickMeter totalTime;
+  stepTime.start();
+  totalTime.start();
 
-	//Start timer
-	TickMeter stepTime;
-	TickMeter totalTime;
-	stepTime.start();
-	totalTime.start();
+  Mat matBGR = img.img;
 
-	Mat matBGR = img.img;
+  // Run multiple times to get accurate timing info. First iteration
+  // Is always slower than normal
 
-	//Run multiple times to get accurate timing info. First iteration
-	//Is always slower than normal
+  /*----- RESIZE/FILTER IMAGE -----*/
 
+  // Resize with CPU. Faster than resizing using GPU due to memory latency
+  cuda::GpuMat gpuMatBGR(matBGR);
+  cuda::GpuMat gpuMatBGRSmall;
 
-	/*----- RESIZE/FILTER IMAGE -----*/
+  if (scale != 1.0)
+  {
+    cuda::resize(gpuMatBGR, gpuMatBGRSmall, Size(), scale, scale, INTER_LINEAR);
+  }
+  else
+  {
+    gpuMatBGRSmall = gpuMatBGR;
+  }
 
-	//Resize with CPU. Faster than resizing using GPU due to memory latency
-	cuda::GpuMat gpuMatBGR(matBGR);
-	cuda::GpuMat gpuMatBGRSmall;
+  printTime("     Resize GPU", stepTime);
 
-	if(scale != 1.0)
-	{
-		cuda::resize(gpuMatBGR,gpuMatBGRSmall,Size(),scale,scale,INTER_LINEAR);
-	}
-	else
-	{
-		gpuMatBGRSmall = gpuMatBGR;
-	}
+  // Convert color space to HSV using GPU
+  cuda::GpuMat gpuMatHSV;
+  cuda::cvtColor(gpuMatBGRSmall, gpuMatHSV, CV_BGR2HSV, 0);
 
-	printTime("     Resize GPU", stepTime);
+  // Split HSV image into 3 channels
+  vector<cuda::GpuMat> gpuSplitMatHSV(3);
+  cuda::split(gpuMatHSV, gpuSplitMatHSV);
 
-	//Convert color space to HSV using GPU
-	cuda::GpuMat gpuMatHSV;
-	cuda::cvtColor(gpuMatBGRSmall, gpuMatHSV, CV_BGR2HSV,0);
+  vector<Mat> splitMatHSV(3);
+  gpuSplitMatHSV[0].download(splitMatHSV[0]);
+  gpuSplitMatHSV[1].download(splitMatHSV[1]);
+  gpuSplitMatHSV[2].download(splitMatHSV[2]);
 
-	//Split HSV image into 3 channels
-	vector<cuda::GpuMat> gpuSplitMatHSV(3);
-	cuda::split(gpuMatHSV,gpuSplitMatHSV);
+  // GPU Split faster than CPU
+  Mat matHSV(gpuMatHSV);
+  printTime("     Convert & Split", stepTime);
 
-	vector<Mat> splitMatHSV(3);
-	gpuSplitMatHSV[0].download(splitMatHSV[0]);
-	gpuSplitMatHSV[1].download(splitMatHSV[1]);
-	gpuSplitMatHSV[2].download(splitMatHSV[2]);
+  // Blur image (Must use CPU for a 3-channel image)
+  boxFilter(matHSV, matHSV, -1, Size(7, 7));
 
+  printTime("     Blur", stepTime);
 
-	//GPU Split faster than CPU
-	Mat matHSV(gpuMatHSV);
-	printTime("     Convert & Split", stepTime);
+  // Return
+  Image filteredImage;
+  filteredImage.img = matHSV;
+  filteredImage.imgColors = img.imgColors;
+  filteredImage.imgPath = img.imgPath;
+  filteredImage.valid = img.valid;
 
-	//Blur image (Must use CPU for a 3-channel image)
-	boxFilter(matHSV,matHSV,-1,Size(7,7));
-
-	printTime("     Blur", stepTime);
-
-
-	//Return
-	Image filteredImage;
-	filteredImage.img = matHSV;
-	filteredImage.imgColors = img.imgColors;
-	filteredImage.imgPath = img.imgPath;
-	filteredImage.valid = img.valid;
-
-
-	return filteredImage;
+  return filteredImage;
 }
-

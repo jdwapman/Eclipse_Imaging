@@ -11,9 +11,10 @@
 #include <tuple>
 #include <vector>
 
-bool sortAreas(const tuple<double, unsigned int> &lhs, const tuple<double, unsigned int> &rhs);
+bool sortAreas(const tuple<double, unsigned int> &lhs,
+               const tuple<double, unsigned int> &rhs);
 
-bool sortVertices(const tuple<unsigned int, unsigned int> &lhs, const tuple<unsigned int, unsigned int> &rhs);
-
+bool sortVertices(const tuple<unsigned int, unsigned int> &lhs,
+                  const tuple<unsigned int, unsigned int> &rhs);
 
 #endif /* TARPSORT_H_ */
